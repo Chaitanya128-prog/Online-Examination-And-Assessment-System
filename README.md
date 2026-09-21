@@ -48,3 +48,17 @@ This version uses HTML and CSS only. Timer, score calculation, login validation 
 - Upcoming exams table with date, time and status
 - Recent results list with subject and score
 - Grid collapses to a single column on small screens
+
+### 3. Exam Page (`exam.html`) - Devang Kumar
+- Exam topbar with exam title and countdown timer box
+- Question card with question number, marks and four options (A-D)
+- Selected option is highlighted
+- Question palette on the side showing answered, marked for review and not answered
+- Previous, Mark for Review, Next and Submit buttons
+- Palette moves below the question on mobile
+
+### 4. Result Page (`result.html`) - Devang Kumar
+- Score card with percentage circle, marks obtained and pass status
+- Stat cards for total questions, correct, wrong and unattempted
+- Answer review list with question, your answer and correct / wrong indicator
+- Back to Dashboard button
