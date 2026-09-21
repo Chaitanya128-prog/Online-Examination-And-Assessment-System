@@ -29,3 +29,13 @@ Demo flow: `index.html` -> Login as Student -> `dashboard.html` -> Start Exam ->
 
 ## Note
 This version uses HTML and CSS only. Timer, score calculation, login validation and database operations are static UI demonstrations and will be made functional later using JavaScript and a backend.
+
+## Modules
+
+### 1. Login Page (`index.html`) - Dev Singh Chauhan
+- Two-column layout: brand panel with logo on the left, login card on the right
+- Role selection (Student / Examiner) using a select dropdown
+- Roll Number / Employee ID and password fields with required validation
+- Remember me checkbox and Forgot password link
+- Separate buttons for Login as Student and Login as Examiner
+- Login card becomes full width on mobile screens
