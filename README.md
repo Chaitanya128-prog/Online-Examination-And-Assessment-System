@@ -39,3 +39,12 @@ This version uses HTML and CSS only. Timer, score calculation, login validation 
 - Remember me checkbox and Forgot password link
 - Separate buttons for Login as Student and Login as Examiner
 - Login card becomes full width on mobile screens
+
+### 2. Student Dashboard (`dashboard.html`) - Dev Sharma
+- Topbar with logo, navigation links and student profile
+- Welcome section with quick action for the live exam
+- Four stat cards: live exams, upcoming exams, completed exams and average score
+- Live exam card with subject, duration, total questions and Start Exam button
+- Upcoming exams table with date, time and status
+- Recent results list with subject and score
+- Grid collapses to a single column on small screens
