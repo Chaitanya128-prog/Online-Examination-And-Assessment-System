@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Online Examination System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page">
+  <main class="auth-shell">
+    <section class="auth-visual">
+      <div class="visual-content">
+        <img src="logo.png" alt="Exam Desk">
+        <h1>Online Exam and Assesment Portal</h1>
+      </div>
+    </section>
+
+    <section class="auth-card-wrap">
+      <div class="auth-card">
+        <div class="mobile-brand"><img src="logo.png" alt="Online Examination System"></div>
+        <div class="card-heading">
+          <h2>Login</h2>
+        </div>
+
+        <form>
+          <label for="role">Login as</label>
+          <select id="role" name="role">
+            <option value="student">Student</option>
+            <option value="examiner">Examiner</option>
+          </select>
+
+          <label for="roll">Roll Number / Employee ID</label>
+          <input id="roll" type="text" placeholder="2415000466" required>
+
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="Password" required>
+
+          <div class="form-row">
+            <label class="check"><input type="checkbox"> Remember me</label>
+            <a href="#">Forgot password?</a>
+          </div>
+
+          <div class="portal-choice">
+            <a class="btn btn-primary btn-full" href="dashboard.html">Login as Student</a>
+            <a class="btn btn-outline btn-full" href="examiner.html">Login as Examiner</a>
+          </div>
+        </form>
+
+        <div class="secure-note">Having trouble logging in? Contact the exam cell.</div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
