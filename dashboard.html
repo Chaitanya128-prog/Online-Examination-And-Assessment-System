@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Online Examination System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand dark" href="dashboard.html"><img src="logo.png" alt="Online Examination System"></a>
+    <nav>
+      <a class="active" href="dashboard.html">Dashboard</a>
+      <a href="exam.html">Exams</a>
+      <a href="result.html">Results</a>
+      <a href="examiner.html">Examiner</a>
+    </nav>
+    <div class="profile">
+      <div class="avatar">CP</div>
+      <div class="profile-text"><strong>Chaitanya Pandey</strong><small>Student</small></div>
+      <a class="logout" href="index.html" title="Logout">Logout</a>
+    </div>
+  </header>
+
+  <main class="container dashboard">
+    <section class="welcome">
+      <div>
+        <span class="eyebrow">21 September 2026</span>
+        <h1>Hello, Chaitanya</h1>
+        <p>You have one exam scheduled for today. Check the details below before starting.</p>
+      </div>
+      <div class="quick-action"><span>1</span><div><strong>Exam today</strong><small>DSA-301</small></div></div>
+    </section>
+
+    <section class="stat-grid">
+      <article class="stat-card"><div class="stat-icon purple">L</div><div><span>Live Exams</span><strong>1</strong><small>Available now</small></div></article>
+      <article class="stat-card"><div class="stat-icon blue">U</div><div><span>Upcoming</span><strong>3</strong><small>This week</small></div></article>
+      <article class="stat-card"><div class="stat-icon green">C</div><div><span>Completed</span><strong>8</strong><small>Total attempts</small></div></article>
+      <article class="stat-card"><div class="stat-icon orange">%</div><div><span>Average Score</span><strong>82%</strong><small>All exams</small></div></article>
+    </section>
+
+    <section class="section-head">
+      <div><span class="eyebrow">Today</span><h2>Live exam</h2></div>
+      <a href="exam.html" class="text-link">Open exam</a>
+    </section>
+
+    <article class="exam-live-card">
+      <div class="exam-logo">DSA</div>
+      <div class="exam-info">
+        <div class="tag live">LIVE</div>
+        <h3>Data Structures &amp; Algorithms</h3>
+        <p>Topics covered: arrays, stacks, queues, sorting, searching and time complexity.</p>
+        <div class="meta-row"><span>30 Minutes</span><span>30 Questions</span><span>+2 correct, -0.5 wrong</span></div>
+      </div>
+      <a class="btn btn-primary" href="exam.html">Start Exam</a>
+    </article>
+
+    <section class="section-head">
+      <div><span class="eyebrow">Help</span><h2>How to attempt exam</h2></div>
+    </section>
+
+    <article class="panel" style="margin-bottom:36px;">
+      <iframe width="560" height="315" src="https://www.youtube.com/embed/8h12ccQgnVU?si=orN-4h-SrjlPlQwW" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </article>
+
+    <section class="content-grid">
+      <div class="panel">
+        <div class="panel-head"><div><span class="eyebrow">Schedule</span><h2>Upcoming exams</h2></div><a href="#">View all</a></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Exam</th><th>Date</th><th>Duration</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Computer Networks</strong><small>CN-204</small></td><td>24 Sep 2026</td><td>45 min</td><td><span class="status upcoming">Upcoming</span></td></tr>
+              <tr><td><strong>Operating Systems</strong><small>OS-301</small></td><td>26 Sep 2026</td><td>60 min</td><td><span class="status upcoming">Upcoming</span></td></tr>
+              <tr><td><strong>Cyber Security</strong><small>CS-305</small></td><td>29 Sep 2026</td><td>40 min</td><td><span class="status upcoming">Upcoming</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div><span class="eyebrow">Previous</span><h2>Recent results</h2></div><a href="result.html">View all</a></div>
+        <div class="result-list">
+          <div class="result-item"><div class="subject-icon">CN</div><div><strong>Computer Networks</strong><small>18 Sep 2026</small></div><b>88%</b></div>
+          <div class="result-item"><div class="subject-icon">DB</div><div><strong>Database Systems</strong><small>14 Sep 2026</small></div><b>81%</b></div>
+          <div class="result-item"><div class="subject-icon">OS</div><div><strong>Operating Systems</strong><small>09 Sep 2026</small></div><b>76%</b></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
