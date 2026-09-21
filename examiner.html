@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Examiner | Online Examination System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand dark" href="examiner.html"><img src="logo.png" alt="Online Examination System"></a>
+  <nav>
+    <a class="active" href="examiner.html">Overview</a>
+    <a href="#students">Students</a>
+    <a href="#exams">Exams</a>
+    <a href="#results">Results</a>
+  </nav>
+  <div class="profile">
+    <div class="avatar">AG</div>
+    <div class="profile-text"><strong>Akash Gupta</strong><small>Examiner</small></div>
+    <a class="logout" href="index.html" title="Logout">Logout</a>
+  </div>
+</header>
+
+<main class="container dashboard">
+  <section class="welcome">
+    <div>
+      <span class="eyebrow">21 September 2026</span>
+      <h1>Hello, Mr. Gupta</h1>
+      <p>DSA-301 is running right now. 96 out of 128 students have submitted so far.</p>
+    </div>
+    <a class="btn btn-primary" href="#exams">Create New Exam</a>
+  </section>
+
+  <section class="stat-grid">
+    <article class="stat-card"><div class="stat-icon purple">S</div><div><span>Total Students</span><strong>128</strong><small>Registered</small></div></article>
+    <article class="stat-card"><div class="stat-icon blue">E</div><div><span>Active Exams</span><strong>1</strong><small>Running now</small></div></article>
+    <article class="stat-card"><div class="stat-icon green">C</div><div><span>Submissions</span><strong>96</strong><small>This semester</small></div></article>
+    <article class="stat-card"><div class="stat-icon orange">%</div><div><span>Class Average</span><strong>78%</strong><small>All exams</small></div></article>
+  </section>
+
+  <section class="content-grid">
+    <div class="panel" id="students">
+      <div class="panel-head">
+        <div><span class="eyebrow">Students</span><h2>Recent submissions</h2></div>
+        <a href="#results">View all</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Student</th><th>Roll No.</th><th>Exam</th><th>Marks</th><th>Percentage</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Chaitanya Pandey</strong><small>B.Tech CSE</small></td><td>2415000466</td><td>DSA-301</td><td><strong>49 / 60</strong></td><td><span class="status upcoming">82%</span></td></tr>
+            <tr><td><strong>Dev Sharma</strong><small>B.Tech CSE</small></td><td>2415000500</td><td>DSA-301</td><td><strong>52 / 60</strong></td><td><span class="status upcoming">87%</span></td></tr>
+            <tr><td><strong>Dev Singh Chauhan</strong><small>B.Tech CSE</small></td><td>2415000502</td><td>DSA-301</td><td><strong>45 / 60</strong></td><td><span class="status upcoming">75%</span></td></tr>
+            <tr><td><strong>Devang Kumar</strong><small>B.Tech CSE</small></td><td>2415000504</td><td>DSA-301</td><td><strong>55 / 60</strong></td><td><span class="status upcoming">92%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel" id="results">
+      <div class="panel-head"><div><span class="eyebrow">DSA-301</span><h2>Class summary</h2></div></div>
+      <div class="result-list">
+        <div class="result-item"><div class="subject-icon">AVG</div><div><strong>Average Marks</strong><small>Out of 96 submissions</small></div><b>78%</b></div>
+        <div class="result-item"><div class="subject-icon">MAX</div><div><strong>Highest Marks</strong><small>Devang Kumar</small></div><b>92%</b></div>
+        <div class="result-item"><div class="subject-icon">PASS</div><div><strong>Pass Percentage</strong><small>Students scoring 40% or more</small></div><b>91%</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="exams" style="margin-top:20px;">
+    <div class="panel-head">
+      <div><span class="eyebrow">Exams</span><h2>All examinations</h2></div>
+      <a href="#">Manage</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Exam</th><th>Date</th><th>Questions</th><th>Submissions</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Data Structures &amp; Algorithms</strong><small>DSA-301</small></td><td>21 Sep 2026</td><td>30</td><td>96 / 128</td><td><span class="status upcoming">Live</span></td></tr>
+          <tr><td><strong>Computer Networks</strong><small>CN-204</small></td><td>24 Sep 2026</td><td>40</td><td>0 / 128</td><td><span class="status upcoming">Upcoming</span></td></tr>
+          <tr><td><strong>Operating Systems</strong><small>OS-301</small></td><td>26 Sep 2026</td><td>50</td><td>0 / 128</td><td><span class="status upcoming">Upcoming</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:20px;">
+    <div class="panel-head"><div><span class="eyebrow">Actions</span><h2>Examiner options</h2></div></div>
+    <div class="quick-actions-grid">
+      <a href="#" class="action-card"><span>1</span><strong>Create Exam</strong><small>Add questions, set duration and marking scheme</small></a>
+      <a href="#students" class="action-card"><span>2</span><strong>Check Marks</strong><small>See marks of every student</small></a>
+      <a href="#results" class="action-card"><span>3</span><strong>Class Report</strong><small>Average, highest and pass percentage</small></a>
+    </div>
+  </section>
+</main>
+</body>
+</html>

@@ -133,3 +133,11 @@ table{width:100%;border-collapse:collapse;font-size:.76rem;min-width:500px}th{te
 @media(max-width:420px){
   .result-stats{grid-template-columns:1fr}.palette-grid{grid-template-columns:repeat(5,1fr)}
 }
+
+/* Examiner Portal */
+.quick-actions-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.action-card{display:flex;flex-direction:column;gap:5px;padding:18px;border:1px solid var(--border);border-radius:6px;background:#fafbfe}
+.action-card:hover{border-color:var(--primary)}
+.action-card>span{width:34px;height:34px;border-radius:6px;background:#e8eef8;color:var(--primary);display:grid;place-items:center;font-weight:600}
+.action-card strong{font-size:.8rem;margin-top:4px}.action-card small{font-size:.66rem;color:var(--muted)}
+@media(max-width:900px){.quick-actions-grid{grid-template-columns:1fr}}
