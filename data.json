@@ -1,0 +1,65 @@
+{
+  "users": [
+    {
+      "roll": "2415000466",
+      "name": "Chaitanya Pandey",
+      "password": "demo",
+      "role": "student"
+    }
+  ],
+  "exams": [
+    {
+      "id": "DSA-301",
+      "title": "Data Structures & Algorithms",
+      "duration": "30 Minutes",
+      "totalMarks": 60,
+      "negativeMarking": 0.5,
+      "questions": [
+        {
+          "id": 1,
+          "question": "Which data structure follows LIFO principle?",
+          "options": [
+            "Queue",
+            "Stack",
+            "Tree",
+            "Graph"
+          ],
+          "correctAnswer": "Stack"
+        },
+        {
+          "id": 2,
+          "question": "What is the average time complexity of Merge Sort?",
+          "options": [
+            "O(n)",
+            "O(log n)",
+            "O(n log n)",
+            "O(n\u00b2)"
+          ],
+          "correctAnswer": "O(n log n)"
+        },
+        {
+          "id": 3,
+          "question": "Which sorting algorithm uses a pivot?",
+          "options": [
+            "Bubble Sort",
+            "Quick Sort",
+            "Selection Sort",
+            "Insertion Sort"
+          ],
+          "correctAnswer": "Quick Sort"
+        }
+      ]
+    }
+  ],
+  "results": [
+    {
+      "student": "2415000466",
+      "exam": "DSA-301",
+      "score": 49,
+      "percentage": 82,
+      "correct": 25,
+      "wrong": 3,
+      "unattempted": 2
+    }
+  ]
+}
