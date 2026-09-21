@@ -62,3 +62,10 @@ This version uses HTML and CSS only. Timer, score calculation, login validation 
 - Stat cards for total questions, correct, wrong and unattempted
 - Answer review list with question, your answer and correct / wrong indicator
 - Back to Dashboard button
+
+### 5. Examiner Portal (`examiner.html`) - Chaitanya Pandey
+- Topbar with examiner profile
+- Quick action cards: create exam, add questions, view results
+- Class stats: total students, exams conducted, average score and pass percentage
+- Upcoming exams table and recent results panel
+- Uses the shared dashboard layout and styles
