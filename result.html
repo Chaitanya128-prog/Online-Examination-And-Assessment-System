@@ -15,33 +15,85 @@
 
   <main class="container result-page">
     <div class="result-heading">
-      <div><span class="eyebrow">DSA-301</span><h1>Exam Result</h1><p>Data Structures &amp; Algorithms, attempted on 21 September 2026</p></div>
+      <div><span class="eyebrow" id="exam-id"></span><h1>Exam Result</h1><p id="exam-desc"></p></div>
       <a class="btn btn-outline" href="dashboard.html">Back to Dashboard</a>
     </div>
 
     <section class="score-hero">
-      <div class="score-circle"><strong>82%</strong><span>Percentage</span></div>
-      <div class="score-copy"><span class="tag passed">Passed</span><h2>Chaitanya Pandey (2415000466)</h2><p>Your answers have been checked. Marks obtained and the question-wise breakdown are given below.</p></div>
-      <div class="score-number"><strong>49</strong><span>out of 60</span></div>
+      <div class="score-circle"><strong id="percent">0%</strong><span>Percentage</span></div>
+      <div class="score-copy"><span class="tag passed" id="status">Passed</span><h2>Chaitanya Pandey (2415000466)</h2><p>Your answers have been checked. Marks obtained and the question-wise breakdown are given below.</p></div>
+      <div class="score-number"><strong id="score">0</strong><span id="total">out of 0</span></div>
     </section>
 
     <section class="result-stats">
-      <div><span class="stat-icon green">R</span><strong>25</strong><small>Correct</small></div>
-      <div><span class="stat-icon red">W</span><strong>3</strong><small>Wrong</small></div>
-      <div><span class="stat-icon gray">-</span><strong>2</strong><small>Not attempted</small></div>
-      <div><span class="stat-icon purple">%</span><strong>82%</strong><small>Percentage</small></div>
+      <div><span class="stat-icon green">R</span><strong id="correct">0</strong><small>Correct</small></div>
+      <div><span class="stat-icon red">W</span><strong id="wrong">0</strong><small>Wrong</small></div>
+      <div><span class="stat-icon gray">-</span><strong id="skipped">0</strong><small>Not attempted</small></div>
+      <div><span class="stat-icon purple">%</span><strong id="percent2">0%</strong><small>Percentage</small></div>
     </section>
 
     <section class="panel review-panel">
-      <div class="panel-head"><div><span class="eyebrow">Answer Key</span><h2>Question-wise marks</h2></div><span class="review-summary">30 questions, 49 / 60</span></div>
-      <div class="review-list">
-        <article class="review-row correct"><div class="review-num">1</div><div><strong>Which data structure follows LIFO principle?</strong><small>Your answer: Stack</small></div><span>+2</span><b>R</b></article>
-        <article class="review-row correct"><div class="review-num">2</div><div><strong>What is the time complexity of binary search?</strong><small>Your answer: O(log n)</small></div><span>+2</span><b>R</b></article>
-        <article class="review-row wrong"><div class="review-num">3</div><div><strong>Which traversal visits root between left and right?</strong><small>Your answer: Postorder. Correct answer: Inorder</small></div><span>-0.5</span><b>W</b></article>
-        <article class="review-row correct"><div class="review-num">4</div><div><strong>Which algorithm uses a pivot element?</strong><small>Your answer: Quick Sort</small></div><span>+2</span><b>R</b></article>
-      </div>
-      <a class="review-more" href="#">Show all 30 questions</a>
+      <div class="panel-head"><div><span class="eyebrow">Answer Key</span><h2>Question-wise marks</h2></div><span class="review-summary" id="review-summary"></span></div>
+      <div class="review-list" id="review-list"></div>
     </section>
   </main>
+  <script>
+    var saved = JSON.parse(localStorage.getItem("examResult") || "null");
+
+    fetch("data.json")
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        var exam = data.exams[0];
+        var questions = exam.questions;
+        var answers = saved ? saved.answers : new Array(questions.length).fill(null);
+        var correct = 0, wrong = 0, skipped = 0, score = 0;
+        var list = document.getElementById("review-list");
+
+        questions.forEach(function (q, i) {
+          var row = document.createElement("article");
+          var yours = answers[i];
+          if (yours === null) {
+            skipped++;
+            row.className = "review-row wrong";
+            row.innerHTML = '<div class="review-num">' + (i + 1) + '</div><div><strong>' + q.question + '</strong><small>Not attempted. Correct answer: ' + q.correctAnswer + '</small></div><span>0</span><b>-</b>';
+          } else if (yours === q.correctAnswer) {
+            correct++;
+            score += 2;
+            row.className = "review-row correct";
+            row.innerHTML = '<div class="review-num">' + (i + 1) + '</div><div><strong>' + q.question + '</strong><small>Your answer: ' + yours + '</small></div><span>+2</span><b>R</b>';
+          } else {
+            wrong++;
+            score -= exam.negativeMarking;
+            row.className = "review-row wrong";
+            row.innerHTML = '<div class="review-num">' + (i + 1) + '</div><div><strong>' + q.question + '</strong><small>Your answer: ' + yours + '. Correct answer: ' + q.correctAnswer + '</small></div><span>-' + exam.negativeMarking + '</span><b>W</b>';
+          }
+          list.appendChild(row);
+        });
+
+        var total = questions.length * 2;
+        if (score < 0) score = 0;
+        var percent = Math.round((score / total) * 100);
+
+        document.getElementById("exam-id").textContent = exam.id;
+        document.getElementById("exam-desc").textContent = exam.title + ", attempted on " + new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+        document.getElementById("percent").textContent = percent + "%";
+        document.getElementById("percent2").textContent = percent + "%";
+        document.getElementById("score").textContent = score;
+        document.getElementById("total").textContent = "out of " + total;
+        document.getElementById("correct").textContent = correct;
+        document.getElementById("wrong").textContent = wrong;
+        document.getElementById("skipped").textContent = skipped;
+        document.getElementById("review-summary").textContent = questions.length + " questions, " + score + " / " + total;
+
+        var status = document.getElementById("status");
+        if (percent >= 40) {
+          status.textContent = "Passed";
+          status.className = "tag passed";
+        } else {
+          status.textContent = "Failed";
+          status.className = "tag live";
+        }
+      });
+  </script>
 </body>
 </html>
