@@ -3,38 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DSA-301 | Online Examination System</title>
+  <title>Exam | Online Examination System</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="exam-page">
   <header class="exam-topbar">
     <a class="brand dark" href="dashboard.html"><img src="logo.png" alt="Online Examination System"></a>
-    <div class="exam-title"><strong>Data Structures &amp; Algorithms</strong><small>DSA-301 | Roll No. 2415000466</small></div>
-    <div class="timer"><span>TIME LEFT</span><strong>24:36</strong></div>
+    <div class="exam-title"><strong id="exam-name">Loading...</strong><small id="exam-meta"></small></div>
+    <div class="timer"><span>TIME LEFT</span><strong id="timer">--:--</strong></div>
   </header>
 
   <div class="exam-layout">
     <main class="question-area">
       <div class="question-top">
-        <span class="question-count">Question <strong>7</strong> of 30</span>
-        <span class="marks">+2 for correct, -0.5 for wrong</span>
+        <span class="question-count">Question <strong id="q-no">1</strong> of <span id="q-total">0</span></span>
+        <span class="marks" id="marks-note"></span>
       </div>
 
       <article class="question-card">
-        <span class="eyebrow">Question 7</span>
-        <h1>Which sorting algorithm has an average-case time complexity of O(n log n) and is based on the divide-and-conquer technique?</h1>
+        <span class="eyebrow" id="q-label">Question 1</span>
+        <h1 id="q-text"></h1>
 
-        <div class="options">
-          <label class="option"><input type="radio" name="q7"><span class="option-letter">A</span><span>Bubble Sort</span></label>
-          <label class="option selected"><input type="radio" name="q7" checked><span class="option-letter">B</span><span>Merge Sort</span></label>
-          <label class="option"><input type="radio" name="q7"><span class="option-letter">C</span><span>Selection Sort</span></label>
-          <label class="option"><input type="radio" name="q7"><span class="option-letter">D</span><span>Insertion Sort</span></label>
-        </div>
+        <div class="options" id="options"></div>
 
         <div class="question-actions">
-          <button class="btn btn-outline">Previous</button>
-          <button class="btn btn-review">Mark for Review</button>
-          <button class="btn btn-primary">Save &amp; Next</button>
+          <button class="btn btn-outline" id="prev-btn">Previous</button>
+          <button class="btn btn-review" id="review-btn">Mark for Review</button>
+          <button class="btn btn-primary" id="next-btn">Save &amp; Next</button>
         </div>
       </article>
 
@@ -42,25 +37,108 @@
     </main>
 
     <aside class="palette">
-      <div class="palette-head"><span class="eyebrow">Questions</span><strong>7 / 30</strong></div>
+      <div class="palette-head"><span class="eyebrow">Questions</span><strong id="palette-count">0 / 0</strong></div>
       <div class="legend">
         <span><i class="dot answered"></i> Answered</span>
         <span><i class="dot not-answered"></i> Not answered</span>
         <span><i class="dot review"></i> Marked for review</span>
       </div>
-      <div class="palette-grid">
-        <a class="p answered" href="#">1</a><a class="p answered" href="#">2</a><a class="p answered" href="#">3</a><a class="p answered" href="#">4</a><a class="p answered" href="#">5</a>
-        <a class="p review" href="#">6</a><a class="p current" href="#">7</a><a class="p" href="#">8</a><a class="p" href="#">9</a><a class="p" href="#">10</a>
-        <a class="p" href="#">11</a><a class="p" href="#">12</a><a class="p" href="#">13</a><a class="p" href="#">14</a><a class="p" href="#">15</a>
-        <a class="p" href="#">16</a><a class="p" href="#">17</a><a class="p" href="#">18</a><a class="p" href="#">19</a><a class="p" href="#">20</a>
-        <a class="p" href="#">21</a><a class="p" href="#">22</a><a class="p" href="#">23</a><a class="p" href="#">24</a><a class="p" href="#">25</a>
-        <a class="p" href="#">26</a><a class="p" href="#">27</a><a class="p" href="#">28</a><a class="p" href="#">29</a><a class="p" href="#">30</a>
-      </div>
+      <div class="palette-grid" id="palette"></div>
       <div class="palette-footer">
-        <p>Answered: 5 &nbsp; Marked: 1 &nbsp; Left: 24</p>
-        <a href="result.html" class="btn btn-danger btn-full">Submit Exam</a>
+        <p id="summary">Answered: 0 &nbsp; Marked: 0 &nbsp; Left: 0</p>
+        <button class="btn btn-danger btn-full" id="submit-btn">Submit Exam</button>
       </div>
     </aside>
   </div>
+  <script>
+    var exam, questions, current = 0, answers = [], marked = [], timeLeft = 0, timerId;
+
+    fetch("data.json")
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        exam = data.exams[0];
+        questions = exam.questions;
+        answers = new Array(questions.length).fill(null);
+        marked = new Array(questions.length).fill(false);
+        timeLeft = parseInt(exam.duration) * 60;
+        document.title = exam.id + " | Online Examination System";
+        document.getElementById("exam-name").textContent = exam.title;
+        document.getElementById("exam-meta").textContent = exam.id + " | " + exam.duration;
+        document.getElementById("q-total").textContent = questions.length;
+        document.getElementById("marks-note").textContent = "+2 for correct, -" + exam.negativeMarking + " for wrong";
+        buildPalette();
+        showQuestion(0);
+        timerId = setInterval(tick, 1000);
+        tick();
+      });
+
+    function showQuestion(i) {
+      current = i;
+      var q = questions[i];
+      document.getElementById("q-no").textContent = i + 1;
+      document.getElementById("q-label").textContent = "Question " + (i + 1);
+      document.getElementById("q-text").textContent = q.question;
+      var box = document.getElementById("options");
+      box.innerHTML = "";
+      var letters = ["A", "B", "C", "D"];
+      q.options.forEach(function (opt, k) {
+        var label = document.createElement("label");
+        label.className = "option" + (answers[i] === opt ? " selected" : "");
+        label.innerHTML = '<input type="radio" name="q' + i + '"><span class="option-letter">' + letters[k] + '</span><span>' + opt + '</span>';
+        label.onclick = function () {
+          answers[i] = opt;
+          showQuestion(i);
+        };
+        box.appendChild(label);
+      });
+      document.getElementById("prev-btn").disabled = i === 0;
+      document.getElementById("next-btn").textContent = i === questions.length - 1 ? "Save" : "Save & Next";
+      updatePalette();
+    }
+
+    function buildPalette() {
+      var grid = document.getElementById("palette");
+      grid.innerHTML = "";
+      questions.forEach(function (q, i) {
+        var a = document.createElement("a");
+        a.href = "#";
+        a.textContent = i + 1;
+        a.onclick = function (e) { e.preventDefault(); showQuestion(i); };
+        grid.appendChild(a);
+      });
+    }
+
+    function updatePalette() {
+      var items = document.querySelectorAll("#palette a");
+      var answered = 0, review = 0;
+      items.forEach(function (a, i) {
+        var cls = "p";
+        if (marked[i]) { cls += " review"; review++; }
+        else if (answers[i] !== null) { cls += " answered"; answered++; }
+        if (i === current) cls += " current";
+        a.className = cls;
+      });
+      document.getElementById("palette-count").textContent = (current + 1) + " / " + questions.length;
+      document.getElementById("summary").innerHTML = "Answered: " + answered + " &nbsp; Marked: " + review + " &nbsp; Left: " + (questions.length - answered - review);
+    }
+
+    function tick() {
+      var m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+      document.getElementById("timer").textContent = (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+      if (timeLeft <= 0) { submitExam(); return; }
+      timeLeft--;
+    }
+
+    function submitExam() {
+      clearInterval(timerId);
+      localStorage.setItem("examResult", JSON.stringify({ examId: exam.id, answers: answers }));
+      window.location.href = "result.html";
+    }
+
+    document.getElementById("prev-btn").onclick = function () { if (current > 0) showQuestion(current - 1); };
+    document.getElementById("next-btn").onclick = function () { if (current < questions.length - 1) showQuestion(current + 1); };
+    document.getElementById("review-btn").onclick = function () { marked[current] = !marked[current]; updatePalette(); };
+    document.getElementById("submit-btn").onclick = function () { if (confirm("Submit the exam?")) submitExam(); };
+  </script>
 </body>
 </html>
