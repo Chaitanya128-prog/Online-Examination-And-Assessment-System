@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profile | ExamDesk</title>
+  <link rel="icon" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("examdesk.theme") || "light");</script>
+</head>
+<body>
+  <header id="appHeader"></header>
+
+  <main class="container page">
+    <section class="page-head">
+      <div><span class="eyebrow">Account</span><h1>Profile &amp; security</h1></div>
+    </section>
+
+    <section class="card" style="margin-bottom:22px">
+      <div class="profile-card">
+        <span class="avatar lg" id="pAvatar">-</span>
+        <div style="flex:1;min-width:200px">
+          <h2 id="pName">-</h2>
+          <p class="muted" id="pMeta"></p>
+        </div>
+        <div class="detail-grid" style="flex:2;min-width:280px">
+          <div><small>Joined</small><strong id="pJoined">-</strong></div>
+          <div><small>Last sign-in</small><strong id="pLastLogin">-</strong></div>
+          <div><small id="pStat1Label">Exams taken</small><strong id="pStat1">-</strong></div>
+          <div><small id="pStat2Label">Average</small><strong id="pStat2">-</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid-2 even" style="margin-bottom:22px">
+      <form class="card form" id="detailsForm" novalidate>
+        <div><h2>Personal details</h2><p class="muted small">Update how your name and contact details appear.</p></div>
+        <div class="field"><label for="fName">Full name</label><input id="fName" type="text" maxlength="60" required></div>
+        <div class="field-row">
+          <div class="field"><label for="fId">ID</label><input id="fId" type="text" readonly></div>
+          <div class="field"><label for="fDept">Department / programme</label><input id="fDept" type="text" maxlength="60"></div>
+        </div>
+        <div class="field"><label for="fEmail">Email</label><input id="fEmail" type="email" required></div>
+        <div class="field"><label for="fPhone">Phone <span class="muted">(optional)</span></label><input id="fPhone" type="tel" inputmode="tel" maxlength="15" placeholder="10-digit mobile number"></div>
+        <p class="form-alert" id="detailsAlert"></p>
+        <div class="form-actions"><button type="submit" class="btn btn-primary" id="detailsBtn"><i class="bi bi-check2" aria-hidden="true"></i> Save changes</button></div>
+      </form>
+
+      <form class="card form" id="passwordForm" novalidate>
+        <div><h2>Change password</h2><p class="muted small">Other devices are signed out after a password change.</p></div>
+        <div class="field">
+          <label for="curPassword">Current password</label>
+          <div class="input-icon"><i class="bi bi-lock" aria-hidden="true"></i><input id="curPassword" type="password" autocomplete="current-password" required>
+            <button type="button" class="input-action" data-toggle-password="curPassword" aria-label="Show password"><i class="bi bi-eye" aria-hidden="true"></i></button></div>
+        </div>
+        <div class="field">
+          <label for="newPassword">New password</label>
+          <div class="input-icon"><i class="bi bi-key" aria-hidden="true"></i><input id="newPassword" type="password" autocomplete="new-password" required>
+            <button type="button" class="input-action" data-toggle-password="newPassword" aria-label="Show password"><i class="bi bi-eye" aria-hidden="true"></i></button></div>
+          <div class="strength" id="strength"></div>
+        </div>
+        <div class="field">
+          <label for="confirmNew">Confirm new password</label>
+          <div class="input-icon"><i class="bi bi-key" aria-hidden="true"></i><input id="confirmNew" type="password" autocomplete="new-password" required></div>
+        </div>
+        <p class="form-alert" id="passwordAlert"></p>
+        <div class="form-actions"><button type="submit" class="btn btn-primary" id="passwordBtn"><i class="bi bi-shield-check" aria-hidden="true"></i> Update password</button></div>
+      </form>
+    </section>
+
+    <section class="grid-2 even" style="margin-bottom:22px">
+      <div class="card">
+        <div class="card-head"><div><h2>Active sessions</h2><p>Devices currently signed in to your account.</p></div>
+          <button type="button" class="btn btn-sm btn-outline" id="signOutOthersBtn">Sign out others</button></div>
+        <div class="list" id="sessionList"><div class="skeleton"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><h2>Preferences</h2></div></div>
+        <div class="switch-row">
+          <div><strong>Dark mode</strong><small>Easier on the eyes at night.</small></div>
+          <label class="switch"><input type="checkbox" id="darkSwitch" aria-label="Dark mode"><span></span></label>
+        </div>
+        <div class="switch-row">
+          <div><strong>Remember my ID on this device</strong><small>Pre-fills the sign-in form.</small></div>
+          <label class="switch"><input type="checkbox" id="rememberSwitch" aria-label="Remember my ID"><span></span></label>
+        </div>
+        <h3 style="margin:18px 0 8px">My recent activity</h3>
+        <div id="activityList"><div class="skeleton"></div></div>
+      </div>
+    </section>
+
+    <section class="card danger-zone" id="dangerZone" hidden>
+      <div class="card-head" style="margin-bottom:6px"><div><h2>Delete account</h2><p>Removes your account and all your results. This cannot be undone.</p></div>
+        <button type="button" class="btn btn-danger" id="deleteAccountBtn"><i class="bi bi-trash3" aria-hidden="true"></i> Delete my account</button></div>
+    </section>
+  </main>
+
+  <dialog class="modal modal-sm" id="deleteDialog">
+    <form method="dialog" id="deleteForm" novalidate>
+      <div class="modal-head"><h2>Delete your account?</h2><button type="button" class="icon-btn sm" data-close aria-label="Close"><i class="bi bi-x-lg"></i></button></div>
+      <div class="modal-body">
+        <p class="muted">Enter your password to confirm. Your results and saved attempts will be removed as well.</p>
+        <div class="field"><label for="deletePassword">Password</label><input id="deletePassword" type="password" autocomplete="current-password" required></div>
+        <p class="form-alert" id="deleteAlert"></p>
+      </div>
+      <div class="modal-foot"><button type="button" class="btn btn-outline" data-close>Cancel</button><button type="submit" class="btn btn-danger" id="confirmDeleteBtn">Delete permanently</button></div>
+    </form>
+  </dialog>
+
+  <footer id="appFooter"></footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

@@ -1,185 +1,159 @@
 "use strict";
 
-redirectIfLoggedIn();
-
-const MAX_ATTEMPTS = 3;
-const LOCK_SECONDS = 30;
+/* =========================================================
+   Login page - sign in, lockout after wrong passwords, remember me
+   Owner: Dev Sharma (Invigilator module + sign-in / profile)
+   json-server: /users, /sessions, /loginAttempts, /activity
+   ========================================================= */
 
 const loginForm = document.getElementById("loginForm");
-const roleSelect = document.getElementById("role");
-const rollInput = document.getElementById("roll");
+const userIdInput = document.getElementById("userId");
 const passwordInput = document.getElementById("password");
 const rememberBox = document.getElementById("remember");
-const showPasswordBox = document.getElementById("showPassword");
-const errorBox = document.getElementById("error");
-const forgotLink = document.getElementById("forgotLink");
-const loginButton = loginForm.querySelector("button[type='submit']");
+const loginAlert = document.getElementById("loginAlert");
+const loginBtn = document.getElementById("loginBtn");
 
 let lockTimer = null;
 
-const savedRoll = localStorage.getItem("rememberRoll");
-if (savedRoll !== null) {
-  rollInput.value = savedRoll;
+document.getElementById("themeToggle").addEventListener("click", function () { toggleTheme(null); });
+applyTheme(document.documentElement.getAttribute("data-theme"));
+setupPasswordToggles();
+
+const remembered = localStorage.getItem(REMEMBER_KEY);
+if (remembered) {
+  userIdInput.value = remembered;
   rememberBox.checked = true;
 }
 
-function showError(message) {
-  errorBox.textContent = message;
-  errorBox.classList.add("show");
+userIdInput.addEventListener("input", function () {
+  userIdInput.value = userIdInput.value.replace(/[^0-9]/g, "");
+  setAlert(loginAlert, "");
+});
+userIdInput.addEventListener("change", checkLock);
+passwordInput.addEventListener("input", function () { if (!lockTimer) setAlert(loginAlert, ""); });
+
+document.getElementById("forgotLink").addEventListener("click", function (event) {
+  event.preventDefault();
+  openModal("forgotDialog");
+});
+
+document.querySelectorAll("[data-demo]").forEach(function (button) {
+  button.addEventListener("click", function () {
+    userIdInput.value = button.getAttribute("data-demo");
+    passwordInput.value = button.getAttribute("data-pass");
+    setAlert(loginAlert, "");
+    checkLock();
+    loginBtn.focus();
+  });
+});
+
+/* ----- Lockout after too many wrong passwords: stored in json-server /loginAttempts ----- */
+
+function attemptId() {
+  return "login-" + userIdInput.value.trim();
 }
 
-function hideError() {
-  errorBox.textContent = "";
-  errorBox.classList.remove("show");
-}
-
-function getAttempts() {
-  const text = localStorage.getItem("loginAttempts");
-  if (text === null) {
-    return { count: 0, lockUntil: 0 };
-  }
-  return JSON.parse(text);
-}
-
-function saveAttempts(attempts) {
-  localStorage.setItem("loginAttempts", JSON.stringify(attempts));
-}
-
-function checkLock() {
-  const attempts = getAttempts();
-  const secondsLeft = Math.ceil((attempts.lockUntil - Date.now()) / 1000);
-
+async function checkLock() {
+  if (!userIdInput.value.trim()) return false;
+  const record = await api.find(idPath("loginAttempts", attemptId())).catch(function () { return null; });
+  const secondsLeft = record ? Math.ceil((record.lockUntil - Date.now()) / 1000) : 0;
   if (secondsLeft > 0) {
-    loginButton.disabled = true;
-    showError("Too many wrong attempts. Try again in " + secondsLeft + " seconds.");
-    if (lockTimer === null) {
-      lockTimer = setInterval(checkLock, 1000);
-    }
+    loginBtn.disabled = true;
+    setAlert(loginAlert, "Too many wrong attempts. Try again in " + secondsLeft + " s.");
+    clearTimeout(lockTimer);
+    lockTimer = setTimeout(checkLock, 1000);
     return true;
   }
-
-  loginButton.disabled = false;
-  if (lockTimer !== null) {
-    clearInterval(lockTimer);
+  if (lockTimer) {
+    clearTimeout(lockTimer);
     lockTimer = null;
-    hideError();
+    setAlert(loginAlert, "");
   }
+  loginBtn.disabled = false;
   return false;
 }
 
-function wrongAttempt() {
-  const attempts = getAttempts();
-  attempts.count = attempts.count + 1;
-
-  if (attempts.count >= MAX_ATTEMPTS) {
-    attempts.count = 0;
-    attempts.lockUntil = Date.now() + LOCK_SECONDS * 1000;
-    saveAttempts(attempts);
-    checkLock();
-    return;
+async function recordWrongAttempt(settings) {
+  const id = attemptId();
+  const existing = await api.find(idPath("loginAttempts", id));
+  const count = (existing ? existing.count : 0) + 1;
+  const record = { id: id, count: count, lockUntil: 0, lastAttemptAt: new Date().toISOString() };
+  if (count >= settings.maxLoginAttempts) {
+    record.count = 0;
+    record.lockUntil = Date.now() + settings.lockSeconds * 1000;
   }
+  if (existing) await api.put(idPath("loginAttempts", id), record);
+  else await api.post("/loginAttempts", record);
 
-  saveAttempts(attempts);
-  const left = MAX_ATTEMPTS - attempts.count;
-  showError("Wrong roll number, password or login type. " + left + " attempt(s) left.");
+  if (record.lockUntil) {
+    await checkLock();
+  } else {
+    const left = settings.maxLoginAttempts - count;
+    setAlert(loginAlert, "Wrong ID or password. " + plural(left, "attempt") + " left.");
+  }
 }
 
-rollInput.addEventListener("input", function () {
-  rollInput.value = rollInput.value.replace(/[^0-9]/g, "");
-  if (!checkLock()) {
-    hideError();
+async function clearAttempts() {
+  if (await api.find(idPath("loginAttempts", attemptId()))) {
+    await api.remove(idPath("loginAttempts", attemptId())).catch(function () {});
   }
-});
+}
 
-passwordInput.addEventListener("input", function () {
-  if (!checkLock()) {
-    hideError();
-  }
-});
-
-showPasswordBox.addEventListener("change", function () {
-  if (showPasswordBox.checked) {
-    passwordInput.type = "text";
-  } else {
-    passwordInput.type = "password";
-  }
-});
-
-forgotLink.addEventListener("click", function (event) {
-  event.preventDefault();
-  alert("Please contact the exam cell to reset your password.");
-});
+/* ----- Submit ----- */
 
 loginForm.addEventListener("submit", function (event) {
   event.preventDefault();
-
-  if (checkLock()) {
-    return;
-  }
-
-  const role = roleSelect.value;
-  const roll = rollInput.value.trim();
+  const userId = userIdInput.value.trim();
   const password = passwordInput.value;
 
-  if (roll === "" || password === "") {
-    showError("Please fill all the fields.");
+  if (!userId || !password) {
+    setAlert(loginAlert, "Please enter your ID and password.");
+    return;
+  }
+  if (userId.length < 4) {
+    setAlert(loginAlert, "That ID looks too short.");
     return;
   }
 
-  if (roll.length < 4) {
-    showError("Roll number or employee ID is too short.");
-    return;
-  }
+  withBusy(loginBtn, async function () {
+    if (await checkLock()) return;
+    const settings = await getSettings();
+    const user = await api.find(idPath("users", userId));
+    const hash = await hashPassword(userId, password);
 
-  if (password.length < 4) {
-    showError("Password is too short.");
-    return;
-  }
+    if (!user || user.password !== hash) {
+      await recordWrongAttempt(settings);
+      return;
+    }
+    if (user.status === "blocked") {
+      setAlert(loginAlert, "This account has been blocked. Please contact the exam cell.");
+      return;
+    }
 
-  loadData()
-    .then(function (data) {
-      const users = getAllUsers(data);
-      const passwordHash = hashPassword(password);
-      let foundUser = null;
+    await clearAttempts();
+    if (rememberBox.checked) localStorage.setItem(REMEMBER_KEY, userId);
+    else localStorage.removeItem(REMEMBER_KEY);
 
-      for (let i = 0; i < users.length; i++) {
-        const u = users[i];
-        if (u.roll === roll && u.role === role && u.password === passwordHash) {
-          foundUser = u;
-          break;
-        }
-      }
+    await createSession(user);
+    await api.patch(idPath("users", user.id), { lastLoginAt: new Date().toISOString() });
+    await logActivity(user, "auth", "Signed in");
+    applyTheme(user.theme || "light");
 
-      if (foundUser === null) {
-        wrongAttempt();
-        return;
-      }
-
-      saveAttempts({ count: 0, lockUntil: 0 });
-
-      if (rememberBox.checked) {
-        localStorage.setItem("rememberRoll", roll);
-      } else {
-        localStorage.removeItem("rememberRoll");
-      }
-
-      saveLoggedUser({ roll: foundUser.roll, name: foundUser.name, role: foundUser.role });
-
-      switch (foundUser.role) {
-        case "student":
-          window.location.href = "dashboard.html";
-          break;
-        case "examiner":
-          window.location.href = "examiner.html";
-          break;
-        default:
-          showError("Unknown user type.");
-      }
-    })
-    .catch(function (error) {
-      console.log(error);
-      showError("Could not load data.json. Please open the project with Live Server.");
-    });
+    const next = new URLSearchParams(location.search).get("next");
+    const safeNext = next && /^[a-z]+\.html([?#].*)?$/.test(next) && next.indexOf("login") !== 0 ? next : null;
+    const rolePages = { student: ["dashboard", "exam.", "result"], examiner: ["examiner"], admin: ["admin"], invigilator: ["invigilator"] };
+    const allowed = safeNext && (safeNext.indexOf("profile") === 0 || (rolePages[user.role] || []).some(function (page) {
+      return safeNext.indexOf(page) === 0;
+    }));
+    location.href = allowed ? safeNext : homeFor(user);
+  }).catch(function (error) {
+    setAlert(loginAlert, error.message);
+  });
 });
 
-checkLock();
+(async function () {
+  await redirectIfLoggedIn();
+  const settings = await getSettings();
+  if (!settings.allowRegistration) document.getElementById("registerLine").hidden = true;
+  await checkLock();
+})().catch(handlePageError);
