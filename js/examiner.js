@@ -1,307 +1,79 @@
 "use strict";
 
-const examiner = checkLogin("examiner");
+/* =========================================================
+   Examiner portal - page start, tabs and Overview
+   (tab code: examiner-exams.js, examiner-grading.js, notices.js)
+   Owner: Chaitanya Pandey
+   json-server: /exams, /results, /attempts, /announcements
+   ========================================================= */
 
-let appData = null;
-let addedQuestions = [];
+let me = null;
+let settings = null;
 
-if (examiner !== null) {
-  document.getElementById("userName").textContent = examiner.name;
-  document.getElementById("userAvatar").textContent = getInitials(examiner.name);
+(async function () {
+  me = await requireRole("examiner");
+  settings = await getSettings();
+  renderAppHeader(me, "overview");
+  renderFooter();
+
   document.getElementById("welcomeDate").textContent = todayText();
-  document.getElementById("welcomeName").textContent = "Hello, " + examiner.name;
-
-  document.getElementById("logoutBtn").addEventListener("click", function (event) {
-    event.preventDefault();
-    logout();
-  });
-
-  document.getElementById("searchBox").addEventListener("input", showStudentRows);
-  document.getElementById("addQuestionBtn").addEventListener("click", addQuestion);
-  document.getElementById("examForm").addEventListener("submit", saveExam);
-
-  loadData()
-    .then(function (data) {
-      appData = data;
-      showAll();
-      setupNotifications(["Examiner dashboard ready", ...getAllExams(data).filter(e=>e.status==="live").map(e=>"Live exam: " + e.title)]);
-    })
-    .catch(function (error) {
-      console.log(error);
-      document.getElementById("welcomeText").textContent =
-        "Could not load data.json. Please open the project with Live Server.";
+  document.getElementById("welcomeName").textContent = "Hello, " + me.name.split(" ")[0];
+  document.querySelectorAll("[data-new-exam]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      if (location.hash !== "#exams") location.hash = "exams";
+      openExamDialog(null).catch(handlePageError);
     });
-}
-
-function showAll() {
-  showStats();
-  showStudentRows();
-  showSummary();
-  showExamRows();
-}
-
-function getStudents() {
-  return getAllUsers(appData).filter(function (u) {
-    return u.role === "student";
-  });
-}
-
-function getStudentName(roll) {
-  const users = getAllUsers(appData);
-  for (let i = 0; i < users.length; i++) {
-    if (users[i].roll === roll) {
-      return users[i].name;
-    }
-  }
-  return roll;
-}
-
-function showStats() {
-  const exams = getAllExams(appData);
-  const results = getAllResults(appData);
-  const students = getStudents();
-
-  const liveExams = exams.filter(function (e) {
-    return e.status === "live";
   });
 
-  document.getElementById("statStudents").textContent = students.length;
-  document.getElementById("statActive").textContent = liveExams.length;
-  document.getElementById("statSubmissions").textContent = results.length;
+  bindExams();
+  bindQuestions();
+  bindGrading();
+  setupNotices(me);
+
+  setupTabs({
+    overview: loadOverview,
+    exams: loadExams,
+    grading: loadGrading,
+    results: loadResults,
+    notices: loadNotices
+  }, "Examiner");
+})().catch(handlePageError);
+
+// Codes of the exams this examiner created (used to scope results)
+async function myExamIds() {
+  const exams = await api.get("/exams", { createdBy: me.id });
+  return exams.map(function (e) { return e.id; });
+}
+
+async function loadOverview() {
+  const exams = await api.get("/exams", { createdBy: me.id, _embed: ["results", "attempts"], _sort: "date", _order: "desc" });
+  const results = [].concat.apply([], exams.map(function (e) { return e.results; }));
+  const pending = results.filter(function (r) { return r.status === "pending"; }).length;
+  const live = exams.filter(function (e) { return e.status === "live"; });
+  const writing = [].concat.apply([], live.map(function (e) { return e.attempts; })).length;
+
+  document.getElementById("statExams").textContent = exams.length;
+  document.getElementById("statDraft").textContent = exams.filter(function (e) { return e.status === "draft"; }).length + " in draft";
+  document.getElementById("statLive").textContent = live.length;
+  document.getElementById("statWriting").textContent = writing + " writing now";
+  document.getElementById("statPending").textContent = pending;
   document.getElementById("statAverage").textContent = averagePercentage(results) + "%";
+  document.getElementById("statSubmissions").textContent = plural(results.length, "submission");
 
-  if (liveExams.length === 0) {
-    document.getElementById("welcomeText").textContent = "No exam is running right now.";
-  } else {
-    const live = liveExams[0];
-    const submitted = results.filter(function (r) {
-      return r.exam === live.id;
-    }).length;
-    document.getElementById("welcomeText").textContent =
-      live.id + " is running right now. " + submitted + " out of " + students.length +
-      " students have submitted so far.";
-  }
-}
+  document.getElementById("welcomeText").textContent = pending
+    ? plural(pending, "paper") + " with written answers " + (pending === 1 ? "is" : "are") + " waiting for your marks."
+    : live.length ? live[0].id + " is live with " + writing + " students writing." : "Everything is marked. Create your next exam when you are ready.";
 
-function showStudentRows() {
-  const results = getAllResults(appData);
-  const text = document.getElementById("searchBox").value.trim().toLowerCase();
+  const withResults = exams.filter(function (e) { return e.results.length; });
+  document.getElementById("examChart").innerHTML = withResults.length ? withResults.map(function (e) {
+    const avg = averagePercentage(e.results);
+    return '<div class="chart-row"><span title="' + escapeHtml(e.title) + '">' + escapeHtml(e.id) + '</span><div class="chart-track"><div class="chart-fill ' +
+      (avg >= settings.passMark ? "brand" : "wrong") + '" style="width:' + avg + '%"></div></div><strong>' + avg + "%</strong></div>";
+  }).join("") : '<div class="empty">No submissions yet.</div>';
 
-  const sorted = results.slice().sort(function (a, b) {
-    if (a.date < b.date) {
-      return 1;
-    }
-    return -1;
-  });
-
-  let html = "";
-  let shown = 0;
-
-  for (let i = 0; i < sorted.length; i++) {
-    const r = sorted[i];
-    const name = getStudentName(r.student);
-
-    if (text !== "" && name.toLowerCase().indexOf(text) === -1 && r.student.indexOf(text) === -1) {
-      continue;
-    }
-    if (text === "" && shown >= 8) {
-      break;
-    }
-
-    html +=
-      "<tr><td><strong>" + escapeHtml(name) + "</strong><small>B.Tech CSE</small></td>" +
-      "<td>" + r.student + "</td>" +
-      "<td>" + escapeHtml(r.exam) + "</td>" +
-      "<td><strong>" + r.score + " / " + r.total + "</strong></td>" +
-      '<td><span class="status upcoming">' + r.percentage + "%</span></td></tr>";
-    shown++;
-  }
-
-  if (shown === 0) {
-    html = '<tr><td colspan="5">No result found.</td></tr>';
-  }
-  document.getElementById("studentBody").innerHTML = html;
-}
-
-function showSummary() {
-  const results = getAllResults(appData);
-
-  if (results.length === 0) {
-    return;
-  }
-
-  let best = results[0];
-  let passed = 0;
-
-  for (let i = 0; i < results.length; i++) {
-    if (results[i].percentage > best.percentage) {
-      best = results[i];
-    }
-    if (results[i].percentage >= 40) {
-      passed++;
-    }
-  }
-
-  document.getElementById("avgText").textContent = averagePercentage(results) + "%";
-  document.getElementById("avgSmall").textContent = "Out of " + results.length + " submissions";
-  document.getElementById("maxText").textContent = best.percentage + "%";
-  document.getElementById("maxSmall").textContent = getStudentName(best.student) + " (" + best.exam + ")";
-  document.getElementById("passText").textContent = Math.round((passed / results.length) * 100) + "%";
-}
-
-function showExamRows() {
-  const exams = getAllExams(appData);
-  const results = getAllResults(appData);
-  const totalStudents = getStudents().length;
-
-  let html = "";
-  for (let i = 0; i < exams.length; i++) {
-    const e = exams[i];
-
-    const submissions = results.filter(function (r) {
-      return r.exam === e.id;
-    }).length;
-
-    let questionText = e.questions.length;
-    if (e.questions.length === 0) {
-      questionText = "-";
-    }
-
-    const statusText = e.status.charAt(0).toUpperCase() + e.status.slice(1);
-
-    html +=
-      "<tr><td><strong>" + escapeHtml(e.title) + "</strong><small>" + escapeHtml(e.id) + "</small></td>" +
-      "<td>" + formatDate(e.date) + "</td>" +
-      "<td>" + questionText + "</td>" +
-      "<td>" + submissions + " / " + totalStudents + "</td>" +
-      '<td><span class="status ' + e.status + '">' + statusText + "</span></td></tr>";
-  }
-  document.getElementById("examBody").innerHTML = html;
-}
-
-function showExamError(message) {
-  const box = document.getElementById("examError");
-  box.textContent = message;
-  if (message === "") {
-    box.classList.remove("show");
-  } else {
-    box.classList.add("show");
-  }
-}
-
-function addQuestion() {
-  const text = document.getElementById("qText").value.trim();
-  const options = [
-    document.getElementById("optA").value.trim(),
-    document.getElementById("optB").value.trim(),
-    document.getElementById("optC").value.trim(),
-    document.getElementById("optD").value.trim()
-  ];
-  const correctIndex = parseInt(document.getElementById("qCorrect").value);
-
-  if (text === "" || options.indexOf("") !== -1) {
-    showExamError("Please fill the question and all four options.");
-    return;
-  }
-
-  for (let i = 0; i < options.length; i++) {
-    if (options.indexOf(options[i]) !== i) {
-      showExamError("All four options must be different.");
-      return;
-    }
-  }
-
-  addedQuestions.push({
-    id: addedQuestions.length + 1,
-    question: text,
-    options: options,
-    correctAnswer: options[correctIndex]
-  });
-
-  document.getElementById("qText").value = "";
-  document.getElementById("optA").value = "";
-  document.getElementById("optB").value = "";
-  document.getElementById("optC").value = "";
-  document.getElementById("optD").value = "";
-  document.getElementById("qCorrect").value = "0";
-
-  showExamError("");
-  showAddedList();
-}
-
-function removeQuestion(index) {
-  addedQuestions.splice(index, 1);
-  for (let i = 0; i < addedQuestions.length; i++) {
-    addedQuestions[i].id = i + 1;
-  }
-  showAddedList();
-}
-
-function showAddedList() {
-  let html = "";
-  for (let i = 0; i < addedQuestions.length; i++) {
-    const q = addedQuestions[i];
-    html +=
-      "<li><span>" + escapeHtml(q.question) + " (Correct: " + escapeHtml(q.correctAnswer) + ")</span>" +
-      '<button type="button" class="remove-btn" onclick="removeQuestion(' + i + ')">Remove</button></li>';
-  }
-  document.getElementById("addedList").innerHTML = html;
-}
-
-function saveExam(event) {
-  event.preventDefault();
-
-  const code = document.getElementById("newId").value.trim().toUpperCase();
-  const title = document.getElementById("newTitle").value.trim();
-  const date = document.getElementById("newDate").value;
-  const duration = parseInt(document.getElementById("newDuration").value);
-  const status = document.getElementById("newStatus").value;
-
-  if (code === "" || title === "" || date === "" || isNaN(duration)) {
-    showExamError("Please fill exam code, title, date and duration.");
-    return;
-  }
-
-  if (!/^[A-Z0-9-]+$/.test(code)) {
-    showExamError("Exam code can have only letters, numbers and hyphen.");
-    return;
-  }
-
-  if (duration <= 0) {
-    showExamError("Duration must be more than 0 minutes.");
-    return;
-  }
-
-  const exams = getAllExams(appData);
-  for (let i = 0; i < exams.length; i++) {
-    if (exams[i].id === code) {
-      showExamError("An exam with this code already exists.");
-      return;
-    }
-  }
-
-  if (addedQuestions.length === 0) {
-    showExamError("Please add at least one question.");
-    return;
-  }
-
-  const newExam = {
-    id: code,
-    title: title,
-    date: date,
-    duration: duration,
-    status: status,
-    correctMarks: 2,
-    negativeMarks: 0.5,
-    questions: addedQuestions
-  };
-
-  saveNewExam(newExam);
-
-  document.getElementById("examForm").reset();
-  addedQuestions = [];
-  showAddedList();
-  showExamError("");
-  showAll();
-  alert("Exam " + code + " saved successfully.");
+  document.getElementById("approvalList").innerHTML = exams.map(function (e) {
+    return '<div class="list-item"><span class="list-icon">' + escapeHtml(e.id.split("-")[0]) + "</span><div><strong>" + escapeHtml(e.title) +
+      "</strong><small>" + escapeHtml(e.id) + " &middot; " + (STATUS_LABELS[e.status] || e.status) +
+      (e.approval === "rejected" && e.approvalNote ? " &middot; " + escapeHtml(e.approvalNote) : "") + "</small></div>" + approvalBadge(e.approval) + "</div>";
+  }).join("") || '<div class="empty">You have not created any exams yet.</div>';
 }

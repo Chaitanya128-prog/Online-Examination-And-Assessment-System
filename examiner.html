@@ -1,137 +1,217 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Examiner | Online Examination System</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.2/font/bootstrap-icons.min.css"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="ui-refinements.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Examiner | ExamDesk</title>
+  <link rel="icon" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("examdesk.theme") || "light");</script>
 </head>
 <body>
-<header class="topbar">
-  <a class="brand dark" href="examiner.html"><img src="logo.png" alt="Online Examination System"></a>
-  <nav>
-    <a class="active" href="examiner.html"><i class="bi bi-grid-1x2" aria-hidden="true"></i> Overview</a>
-    <a href="#students"><i class="bi bi-people" aria-hidden="true"></i> Students</a>
-    <a href="#exams"><i class="bi bi-journal-text" aria-hidden="true"></i> Exams</a>
-    <a href="#results"><i class="bi bi-bar-chart" aria-hidden="true"></i> Results</a>
-    <a href="#createExam"><i class="bi bi-plus-circle" aria-hidden="true"></i> Create Exam</a>
-  </nav>
-  <div class="notification-wrap"><button class="notification-bell" id="notificationBell" type="button" aria-label="Notifications" aria-expanded="false"><i class="bi bi-bell" aria-hidden="true"></i><span class="bell-dot"></span></button><div class="notification-panel" id="notificationPanel" hidden><strong>Notifications</strong><div id="notificationItems" class="notification-items">Loading updates…</div></div></div><div class="profile">
-    <div class="avatar" id="userAvatar">E</div>
-    <div class="profile-text"><strong id="userName">Examiner</strong><small>Examiner</small></div>
-    <a class="logout" href="login.html" id="logoutBtn" title="Logout"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> <span>Log out</span></a>
-  </div>
-</header>
+  <header id="appHeader"></header>
 
-<main class="container dashboard">
-  <section class="welcome">
-    <div>
-      <span class="eyebrow" id="welcomeDate"></span>
-      <h1 id="welcomeName">Hello</h1>
-      <p id="welcomeText">Loading...</p>
-    </div>
-    <a class="btn btn-primary" href="#createExam">Create New Exam</a>
-  </section>
+  <main class="container page">
 
-  <section class="stat-grid">
-    <article class="stat-card"><div class="stat-icon purple">S</div><div><span>Total Students</span><strong id="statStudents">0</strong><small>Registered</small></div></article>
-    <article class="stat-card"><div class="stat-icon blue">E</div><div><span>Active Exams</span><strong id="statActive">0</strong><small>Running now</small></div></article>
-    <article class="stat-card"><div class="stat-icon green">C</div><div><span>Submissions</span><strong id="statSubmissions">0</strong><small>Total</small></div></article>
-    <article class="stat-card"><div class="stat-icon orange">%</div><div><span>Class Average</span><strong id="statAverage">0%</strong><small>All exams</small></div></article>
-  </section>
-
-  <section class="content-grid">
-    <div class="panel" id="students">
-      <div class="panel-head">
-        <div><span class="eyebrow">Students</span><h2>Recent submissions</h2></div>
-        <input class="search-box" id="searchBox" type="text" placeholder="Search name or roll no.">
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Student</th><th>Roll No.</th><th>Exam</th><th>Marks</th><th>Percentage</th></tr></thead>
-          <tbody id="studentBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="panel" id="results">
-      <div class="panel-head"><div><span class="eyebrow">All exams</span><h2>Class summary</h2></div></div>
-      <div class="result-list">
-        <div class="result-item"><div class="subject-icon">AVG</div><div><strong>Average Marks</strong><small id="avgSmall">-</small></div><b id="avgText">0%</b></div>
-        <div class="result-item"><div class="subject-icon">MAX</div><div><strong>Highest Marks</strong><small id="maxSmall">-</small></div><b id="maxText">0%</b></div>
-        <div class="result-item"><div class="subject-icon">PASS</div><div><strong>Pass Percentage</strong><small>Students scoring 40% or more</small></div><b id="passText">0%</b></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="panel" id="exams" style="margin-top:20px;">
-    <div class="panel-head">
-      <div><span class="eyebrow">Exams</span><h2>All examinations</h2></div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Exam</th><th>Date</th><th>Questions</th><th>Submissions</th><th>Status</th></tr></thead>
-        <tbody id="examBody"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="panel" id="createExam" style="margin-top:20px;">
-    <div class="panel-head">
-      <div><span class="eyebrow">Create</span><h2>Create new exam</h2></div>
-    </div>
-
-    <form id="examForm">
-      <div class="two-col">
-        <div><label for="newId">Exam Code</label><input id="newId" type="text" placeholder="CN-204"></div>
-        <div><label for="newTitle">Exam Title</label><input id="newTitle" type="text" placeholder="Computer Networks"></div>
-        <div><label for="newDate">Exam Date</label><input id="newDate" type="date"></div>
-        <div><label for="newDuration">Duration (minutes)</label><input id="newDuration" type="number" min="1" placeholder="30"></div>
-        <div><label for="newStatus">Status</label>
-          <select id="newStatus">
-            <option value="upcoming">Upcoming</option>
-            <option value="live">Live</option>
-          </select>
+    <!-- ================= OVERVIEW ================= -->
+    <section class="tab-panel" data-tab="overview" hidden>
+      <div class="welcome">
+        <div>
+          <span class="eyebrow" id="welcomeDate"></span>
+          <h1 id="welcomeName">Hello</h1>
+          <p id="welcomeText">Loading...</p>
+        </div>
+        <div class="form-actions">
+          <a class="btn btn-outline" href="#grading"><i class="bi bi-pencil-square" aria-hidden="true"></i> Grade answers</a>
+          <button type="button" class="btn btn-primary" data-new-exam><i class="bi bi-plus-lg" aria-hidden="true"></i> New exam</button>
         </div>
       </div>
-
-      <h3 class="form-sub">Add questions</h3>
-      <label for="qText">Question</label>
-      <input id="qText" type="text" placeholder="Type the question here">
-      <div class="two-col">
-        <div><label for="optA">Option A</label><input id="optA" type="text"></div>
-        <div><label for="optB">Option B</label><input id="optB" type="text"></div>
-        <div><label for="optC">Option C</label><input id="optC" type="text"></div>
-        <div><label for="optD">Option D</label><input id="optD" type="text"></div>
-        <div><label for="qCorrect">Correct Option</label>
-          <select id="qCorrect">
-            <option value="0">A</option>
-            <option value="1">B</option>
-            <option value="2">C</option>
-            <option value="3">D</option>
-          </select>
+      <div class="stat-grid">
+        <div class="stat-card"><span class="stat-icon brand"><i class="bi bi-journal-text" aria-hidden="true"></i></span><div><span>My exams</span><strong id="statExams">-</strong><small id="statDraft"></small></div></div>
+        <div class="stat-card"><span class="stat-icon red"><i class="bi bi-broadcast" aria-hidden="true"></i></span><div><span>Live now</span><strong id="statLive">-</strong><small id="statWriting"></small></div></div>
+        <div class="stat-card"><span class="stat-icon orange"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span><div><span>To grade</span><strong id="statPending">-</strong><small>Written answers</small></div></div>
+        <div class="stat-card"><span class="stat-icon green"><i class="bi bi-percent" aria-hidden="true"></i></span><div><span>Average score</span><strong id="statAverage">-</strong><small id="statSubmissions"></small></div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><div><span class="eyebrow">Performance</span><h2>Average score by exam</h2></div></div>
+          <div class="chart" id="examChart"><div class="skeleton"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><span class="eyebrow">Paper status</span><h2>Approval tracker</h2></div><a class="card-link" href="#exams">My exams <i class="bi bi-arrow-right" aria-hidden="true"></i></a></div>
+          <div class="list" id="approvalList"><div class="skeleton"></div></div>
         </div>
       </div>
-      <button type="button" class="btn btn-outline" id="addQuestionBtn">Add Question</button>
+    </section>
 
-      <ol class="added-list" id="addedList"></ol>
+    <!-- ================= EXAMS ================= -->
+    <section class="tab-panel" data-tab="exams" hidden>
+      <div class="page-head">
+        <div><span class="eyebrow">Create &amp; manage</span><h1>My exams</h1><p>Write the paper, send it to the admin for approval, then open it for students.</p></div>
+        <button type="button" class="btn btn-primary" data-new-exam><i class="bi bi-plus-lg" aria-hidden="true"></i> New exam</button>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <div class="input-icon search"><i class="bi bi-search" aria-hidden="true"></i><input type="search" id="examSearch" placeholder="Search title or code" aria-label="Search exams"></div>
+          <select id="examStatusFilter" aria-label="Filter by status">
+            <option value="">All statuses</option><option value="draft">Draft</option><option value="upcoming">Upcoming</option><option value="live">Live</option><option value="completed">Completed</option>
+          </select>
+          <select id="examApprovalFilter" aria-label="Filter by approval">
+            <option value="">Any approval</option><option value="none">Not submitted</option><option value="pending">Awaiting approval</option><option value="approved">Approved</option><option value="rejected">Changes requested</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table class="table table-stack">
+            <thead><tr><th>Exam</th><th>Date &amp; time</th><th class="num">Questions</th><th>Approval</th><th>Status</th><th class="num">Submitted</th><th class="num">Actions</th></tr></thead>
+            <tbody id="examBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="examPager"></div>
+      </div>
+    </section>
 
-      <p class="form-error" id="examError"></p>
-      <button type="submit" class="btn btn-primary">Save Exam</button>
+    <!-- ================= GRADING ================= -->
+    <section class="tab-panel" data-tab="grading" hidden>
+      <div class="page-head">
+        <div><span class="eyebrow">Written answers</span><h1>Grading queue</h1><p>MCQs are already checked. Mark the written answers to publish the final result.</p></div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table class="table table-stack">
+            <thead><tr><th>Student</th><th>Exam</th><th>Submitted</th><th class="num">To mark</th><th class="num">MCQ score</th><th class="num">Action</th></tr></thead>
+            <tbody id="gradingBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= RESULTS ================= -->
+    <section class="tab-panel" data-tab="results" hidden>
+      <div class="page-head">
+        <div><span class="eyebrow">My exams</span><h1>Results</h1><p>Review marks, re-grade, add remarks, or delete a result to allow a re-attempt.</p></div>
+        <button type="button" class="btn btn-outline" id="exportBtn"><i class="bi bi-download" aria-hidden="true"></i> Export CSV</button>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <div class="input-icon search"><i class="bi bi-search" aria-hidden="true"></i><input type="search" id="resultSearch" inputmode="numeric" placeholder="Filter by roll no." aria-label="Filter by roll number"></div>
+          <select id="resultExamFilter" aria-label="Filter by exam"><option value="">All my exams</option></select>
+          <select id="resultOutcomeFilter" aria-label="Filter by outcome">
+            <option value="">All outcomes</option><option value="pass">Passed</option><option value="fail">Failed</option><option value="pending">Pending review</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table class="table table-stack">
+            <thead><tr><th>Student</th><th>Exam</th><th>Submitted</th><th class="num">Score</th><th>Outcome</th><th class="num">Actions</th></tr></thead>
+            <tbody id="resultBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="resultPager"></div>
+      </div>
+    </section>
+
+    <!-- ================= NOTICES ================= -->
+    <section class="tab-panel" data-tab="notices" hidden>
+      <div class="page-head">
+        <div><span class="eyebrow">Notice board</span><h1>Announcements</h1><p>Your messages appear on dashboards and in the notification bell.</p></div>
+        <button type="button" class="btn btn-primary" id="newNoticeBtn"><i class="bi bi-megaphone" aria-hidden="true"></i> New announcement</button>
+      </div>
+      <div class="card"><div id="noticeList"><div class="skeleton"></div></div></div>
+    </section>
+  </main>
+
+  <!-- ================= DIALOGS ================= -->
+
+  <dialog class="modal" id="examDialog">
+    <form id="examForm" novalidate>
+      <div class="modal-head"><div><h2 id="examDialogTitle">New exam</h2><p id="examDialogHint">Add questions after saving, then send the paper for approval.</p></div><button type="button" class="icon-btn sm" data-close aria-label="Close"><i class="bi bi-x-lg"></i></button></div>
+      <div class="modal-body">
+        <div class="field-row">
+          <div class="field"><label for="eId">Exam code</label><input id="eId" type="text" maxlength="12" placeholder="CN-204" required><span class="hint">Letters, numbers and hyphen. Cannot be changed later.</span></div>
+          <div class="field"><label for="eSubject">Subject</label><select id="eSubject"></select></div>
+        </div>
+        <div class="field"><label for="eTitle">Title</label><input id="eTitle" type="text" maxlength="80" placeholder="Computer Networks" required></div>
+        <div class="field-row three">
+          <div class="field"><label for="eDate">Date</label><input id="eDate" type="date" required></div>
+          <div class="field"><label for="eTime">Start time</label><input id="eTime" type="time" required><span class="hint">Students can start from this time</span></div>
+          <div class="field"><label for="eDuration">Duration (min)</label><input id="eDuration" type="number" min="1" max="300" required></div>
+        </div>
+        <div class="field-row three">
+          <div class="field"><label for="eStatus">Status</label><select id="eStatus"></select></div>
+          <div class="field"><label for="eCorrect">MCQ marks if correct</label><input id="eCorrect" type="number" min="0.25" step="0.25" required></div>
+          <div class="field"><label for="eNegative">MCQ marks if wrong (-)</label><input id="eNegative" type="number" min="0" step="0.25" required></div>
+        </div>
+        <div class="field"><label for="eDescription">Short description</label><textarea id="eDescription" maxlength="300" rows="2"></textarea></div>
+        <div class="field"><label for="eInstructions">Instructions for students</label><textarea id="eInstructions" maxlength="600" rows="3"></textarea></div>
+        <p class="form-alert" id="examAlert"></p>
+      </div>
+      <div class="modal-foot"><button type="button" class="btn btn-outline" data-close>Cancel</button><button type="submit" class="btn btn-primary" id="examSaveBtn">Save exam</button></div>
     </form>
-  </section>
+  </dialog>
 
-  <section class="panel" style="margin-top:20px;">
-    <div class="panel-head"><div><span class="eyebrow">Actions</span><h2>Examiner options</h2></div></div>
-    <div class="quick-actions-grid">
-      <a href="#createExam" class="action-card"><span>1</span><strong>Create Exam</strong><small>Add questions, set duration and marking scheme</small></a>
-      <a href="#students" class="action-card"><span>2</span><strong>Check Marks</strong><small>See marks of every student</small></a>
-      <a href="#results" class="action-card"><span>3</span><strong>Class Report</strong><small>Average, highest and pass percentage</small></a>
+  <dialog class="modal modal-lg" id="questionsDialog">
+    <div class="modal-head"><div><h2 id="qDialogTitle">Questions</h2><p id="qDialogMeta"></p></div><button type="button" class="icon-btn sm" data-close aria-label="Close"><i class="bi bi-x-lg"></i></button></div>
+    <div class="modal-body">
+      <p class="form-alert show error" id="qLocked" hidden>This exam is live or completed, so its questions are locked.</p>
+      <form class="card form" id="questionForm" novalidate style="background:var(--surface-2)">
+        <div class="card-head" style="margin:0"><h3 id="qFormTitle">Add a question</h3>
+          <div class="seg" role="radiogroup" aria-label="Question type">
+            <label><input type="radio" name="qType" value="mcq" checked><i class="bi bi-ui-checks" aria-hidden="true"></i> MCQ</label>
+            <label><input type="radio" name="qType" value="text"><i class="bi bi-textarea-t" aria-hidden="true"></i> Written</label>
+          </div>
+        </div>
+        <div class="field"><label for="qText">Question</label><textarea id="qText" rows="2" maxlength="600" required></textarea></div>
+        <fieldset id="mcqFields">
+          <legend>Options &mdash; select the correct one (checked automatically)</legend>
+          <div class="option-inputs">
+            <div class="option-input"><input type="radio" name="qCorrect" value="0" checked aria-label="Option A is correct"><b>A</b><input type="text" id="qOpt0" maxlength="150" placeholder="Option A" aria-label="Option A"></div>
+            <div class="option-input"><input type="radio" name="qCorrect" value="1" aria-label="Option B is correct"><b>B</b><input type="text" id="qOpt1" maxlength="150" placeholder="Option B" aria-label="Option B"></div>
+            <div class="option-input"><input type="radio" name="qCorrect" value="2" aria-label="Option C is correct"><b>C</b><input type="text" id="qOpt2" maxlength="150" placeholder="Option C" aria-label="Option C"></div>
+            <div class="option-input"><input type="radio" name="qCorrect" value="3" aria-label="Option D is correct"><b>D</b><input type="text" id="qOpt3" maxlength="150" placeholder="Option D" aria-label="Option D"></div>
+          </div>
+        </fieldset>
+        <div id="textFields" hidden>
+          <div class="field-row">
+            <div class="field"><label for="qMarks">Maximum marks</label><input id="qMarks" type="number" min="1" max="50" step="0.5" value="4"></div>
+            <div class="field"><span class="label">Checked by</span><p class="muted small" style="padding-top:10px">You, in the Grading tab, after students submit.</p></div>
+          </div>
+          <div class="field"><label for="qModel">Model answer / marking guide <span class="muted">(shown to you while grading)</span></label><textarea id="qModel" rows="3" maxlength="1500"></textarea></div>
+        </div>
+        <p class="form-alert" id="questionAlert"></p>
+        <div class="form-actions"><button type="button" class="btn btn-ghost" id="qCancelEdit" hidden>Cancel edit</button><button type="submit" class="btn btn-primary" id="qSaveBtn"><i class="bi bi-plus-lg" aria-hidden="true"></i> Add question</button></div>
+      </form>
+      <div class="question-list" id="questionList"></div>
     </div>
-  </section>
-</main>
+    <div class="modal-foot"><button type="button" class="btn btn-primary" data-close>Done</button></div>
+  </dialog>
 
-<footer class="app-footer"><span>✦ ExamDesk</span><span>Learn • Assess • Improve</span><small>© 2026 ExamDesk</small></footer><div id="toastRegion" class="toast-region" aria-live="polite"></div><script src="js/common.js"></script>
-<script src="js/examiner.js"></script>
+  <dialog class="modal modal-lg" id="gradeDialog">
+    <form id="gradeForm" novalidate>
+      <div class="modal-head"><div><h2 id="gdTitle">Grade answers</h2><p id="gdMeta"></p></div><button type="button" class="icon-btn sm" data-close aria-label="Close"><i class="bi bi-x-lg"></i></button></div>
+      <div class="modal-body">
+        <div class="detail-grid" id="gdStats"></div>
+        <div id="gdWritten"></div>
+        <div class="field"><label for="gdRemarks">Overall remarks <span class="muted">(visible to the student)</span></label><textarea id="gdRemarks" rows="2" maxlength="400"></textarea></div>
+        <details>
+          <summary class="link" style="cursor:pointer">Show MCQ answers</summary>
+          <div id="gdMcq" style="margin-top:10px"></div>
+        </details>
+        <p class="form-alert" id="gradeAlert"></p>
+      </div>
+      <div class="modal-foot"><button type="button" class="btn btn-outline" data-close>Close</button><button type="submit" class="btn btn-primary" id="gradeSaveBtn"><i class="bi bi-check2-circle" aria-hidden="true"></i> Save marks</button></div>
+    </form>
+  </dialog>
+
+  <footer id="appFooter"></footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/notices.js"></script>
+  <script src="js/examiner-exams.js"></script>
+  <script src="js/examiner-grading.js"></script>
+  <script src="js/examiner.js"></script>
 </body>
 </html>
