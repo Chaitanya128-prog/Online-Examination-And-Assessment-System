@@ -1,6 +1,10 @@
 "use strict";
 
-redirectIfLoggedIn();
+/* =========================================================
+   Register page - student sign-up with duplicate checks (Create user)
+   Owner: Devang Kumar (Student module)
+   json-server: /users
+   ========================================================= */
 
 const registerForm = document.getElementById("registerForm");
 const nameInput = document.getElementById("fullName");
@@ -8,82 +12,23 @@ const rollInput = document.getElementById("roll");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const confirmInput = document.getElementById("confirmPassword");
-const showPasswordBox = document.getElementById("showPassword");
-const strengthText = document.getElementById("strengthText");
-const errorBox = document.getElementById("error");
-const successBox = document.getElementById("success");
+const registerAlert = document.getElementById("registerAlert");
+const registerBtn = document.getElementById("registerBtn");
 
-function showError(message) {
-  successBox.classList.remove("show");
-  errorBox.textContent = message;
-  errorBox.classList.add("show");
-}
-
-function hideError() {
-  errorBox.textContent = "";
-  errorBox.classList.remove("show");
-}
-
-function passwordScore(password) {
-  let score = 0;
-  if (password.length >= 6) {
-    score++;
-  }
-  if (password.length >= 10) {
-    score++;
-  }
-  if (/[a-zA-Z]/.test(password) && /[0-9]/.test(password)) {
-    score++;
-  }
-  if (/[^a-zA-Z0-9]/.test(password)) {
-    score++;
-  }
-  return score;
-}
+document.getElementById("themeToggle").addEventListener("click", function () { toggleTheme(null); });
+applyTheme(document.documentElement.getAttribute("data-theme"));
+setupPasswordToggles();
 
 rollInput.addEventListener("input", function () {
   rollInput.value = rollInput.value.replace(/[^0-9]/g, "");
-  hideError();
 });
-
 nameInput.addEventListener("input", function () {
-  nameInput.value = nameInput.value.replace(/[^a-zA-Z ]/g, "");
-  hideError();
+  nameInput.value = nameInput.value.replace(/[^a-zA-Z .'-]/g, "");
 });
-
-emailInput.addEventListener("input", hideError);
-confirmInput.addEventListener("input", hideError);
-
 passwordInput.addEventListener("input", function () {
-  hideError();
-  const password = passwordInput.value;
-
-  if (password === "") {
-    strengthText.textContent = "";
-    return;
-  }
-
-  const score = passwordScore(password);
-  if (score <= 1) {
-    strengthText.textContent = "Strength: Weak";
-    strengthText.className = "strength weak";
-  } else if (score === 2) {
-    strengthText.textContent = "Strength: Medium";
-    strengthText.className = "strength medium";
-  } else {
-    strengthText.textContent = "Strength: Strong";
-    strengthText.className = "strength strong";
-  }
+  renderStrength(document.getElementById("strength"), passwordInput.value);
 });
-
-showPasswordBox.addEventListener("change", function () {
-  let type = "password";
-  if (showPasswordBox.checked) {
-    type = "text";
-  }
-  passwordInput.type = type;
-  confirmInput.type = type;
-});
+registerForm.addEventListener("input", function () { setAlert(registerAlert, ""); });
 
 registerForm.addEventListener("submit", function (event) {
   event.preventDefault();
@@ -94,82 +39,63 @@ registerForm.addEventListener("submit", function (event) {
   const password = passwordInput.value;
   const confirm = confirmInput.value;
 
-  if (name === "" || roll === "" || email === "" || password === "" || confirm === "") {
-    showError("Please fill all the fields.");
+  let message = "";
+  if (!name || !roll || !email || !password || !confirm) message = "Please fill in all the fields.";
+  else if (name.length < 3) message = "Name must have at least 3 letters.";
+  else if (!/^[0-9]{10}$/.test(roll)) message = "Roll number must be exactly 10 digits.";
+  else if (!EMAIL_PATTERN.test(email)) message = "Please enter a valid email address.";
+  else message = validatePassword(password, roll);
+  if (!message && password !== confirm) message = "The two passwords do not match.";
+  if (message) {
+    setAlert(registerAlert, message);
     return;
   }
 
-  if (name.length < 3) {
-    showError("Name must have at least 3 letters.");
-    return;
-  }
+  withBusy(registerBtn, async function () {
+    // Server-side duplicate checks through json-server filters
+    const [byId, byEmail] = await Promise.all([
+      api.find(idPath("users", roll)),
+      api.get("/users", { email: email })
+    ]);
+    if (byId) {
+      setAlert(registerAlert, "This roll number is already registered. Please sign in.");
+      return;
+    }
+    if (byEmail.length) {
+      setAlert(registerAlert, "This email is already registered.");
+      return;
+    }
 
-  if (!/^[0-9]{10}$/.test(roll)) {
-    showError("Roll number must be exactly 10 digits.");
-    return;
-  }
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-    showError("Please enter a valid email address.");
-    return;
-  }
-
-  if (password.length < 6) {
-    showError("Password must have at least 6 characters.");
-    return;
-  }
-
-  if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
-    showError("Password must have at least one letter and one number.");
-    return;
-  }
-
-  if (password === roll) {
-    showError("Password cannot be the same as the roll number.");
-    return;
-  }
-
-  if (password !== confirm) {
-    showError("Password and confirm password do not match.");
-    return;
-  }
-
-  loadData()
-    .then(function (data) {
-      const users = getAllUsers(data);
-
-      for (let i = 0; i < users.length; i++) {
-        if (users[i].roll === roll) {
-          showError("This roll number is already registered. Please login.");
-          return;
-        }
-        if (users[i].email !== undefined && users[i].email === email) {
-          showError("This email is already registered.");
-          return;
-        }
-      }
-
-      saveNewUser({
-        roll: roll,
-        name: name,
-        email: email,
-        password: hashPassword(password),
-        role: "student"
-      });
-
-      localStorage.setItem("rememberRoll", roll);
-      hideError();
-      successBox.textContent = "Registration successful. Redirecting to login...";
-      successBox.classList.add("show");
-      registerForm.reset();
-      strengthText.textContent = "";
-
-      setTimeout(function () {
-        window.location.href = "login.html";
-      }, 1500);
-    })
-    .catch(function (error) {
-      console.log(error);
-      showError("Could not load data.json. Please open the project with Live Server.");
+    const user = await api.post("/users", {
+      id: roll,
+      name: name,
+      email: email,
+      phone: "",
+      department: document.getElementById("department").value,
+      role: "student",
+      password: await hashPassword(roll, password),
+      status: "active",
+      theme: document.documentElement.getAttribute("data-theme"),
+      createdAt: new Date().toISOString(),
+      notificationsSeenAt: null
     });
+    await logActivity(user, "user", "Registered a new student account");
+
+    localStorage.setItem(REMEMBER_KEY, roll);
+    registerForm.reset();
+    renderStrength(document.getElementById("strength"), "");
+    setAlert(registerAlert, "Account created. Taking you to sign in...", "success");
+    setTimeout(function () { location.href = "login.html"; }, 1300);
+  }).catch(function (error) {
+    setAlert(registerAlert, error.message);
+  });
 });
+
+(async function () {
+  await redirectIfLoggedIn();
+  const settings = await getSettings();
+  if (!settings.allowRegistration) {
+    document.getElementById("closedAlert").hidden = false;
+    registerForm.querySelectorAll("input, select, button").forEach(function (el) { el.disabled = true; });
+  }
+})().catch(handlePageError);

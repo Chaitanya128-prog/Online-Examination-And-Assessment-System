@@ -1,189 +1,158 @@
 "use strict";
 
-const user = checkLogin("student");
+/* =========================================================
+   Result page - score, rank, class average, remarks, answer review
+   Owner: Devang Kumar (Student module)
+   json-server: /results
+   ========================================================= */
 
-let showAll = false;
-let rowsHtml = [];
+const LETTERS = ["A", "B", "C", "D"];
+let reviewFilter = "all";
+let currentResult = null;
 
-if (user !== null) {
-  document.getElementById("userName").textContent = user.name;
-  document.getElementById("userAvatar").textContent = getInitials(user.name);
+(async function () {
+  const user = await requireRole("student");
+  renderAppHeader(user, "results");
+  renderFooter();
 
-  document.getElementById("logoutBtn").addEventListener("click", function (event) {
-    event.preventDefault();
-    logout();
-  });
+  const [settings, myResults] = await Promise.all([
+    getSettings(),
+    api.get("/results", { userId: user.id, _sort: "submittedAt", _order: "desc" })
+  ]);
 
-  document.getElementById("moreLink").addEventListener("click", function (event) {
-    event.preventDefault();
-    showAll = !showAll;
-    showRows();
-  });
-
-  loadData()
-    .then(function (data) {
-      showResult(data);
-    })
-    .catch(function (error) {
-      console.log(error);
-      alert("Could not load data.json. Please open the project with Live Server.");
-    });
-}
-
-function showResult(data) {
-  const exams = getAllExams(data);
-  const myResults = getAllResults(data).filter(function (r) {
-    return r.student === user.roll;
-  });
-
-  if (myResults.length === 0) {
-    document.getElementById("resultBox").style.display = "none";
-    document.getElementById("emptyBox").style.display = "block";
+  if (!myResults.length) {
+    document.getElementById("emptyBox").hidden = false;
     return;
   }
+  document.getElementById("resultBox").hidden = false;
 
-  const select = document.getElementById("resultExamSelect");
-  select.innerHTML = myResults.map((r, i) => '<option value="' + i + '">' + escapeHtml(r.examTitle || r.exam) + ' · ' + escapeHtml(r.date || '') + '</option>').join("");
-  select.onchange = function () { localStorage.setItem("resultExamId", myResults[Number(select.value)].exam); showResult(data); };
-  const wantedId = localStorage.getItem("resultExamId");
-  let result = null;
+  const params = new URLSearchParams(location.search);
+  const wanted = Number(params.get("id"));
+  if (params.get("new")) toast("Your exam was submitted successfully.", "success");
 
-  for (let i = 0; i < myResults.length; i++) {
-    if (myResults[i].exam === wantedId) {
-      result = myResults[i];
-    }
-  }
+  const select = document.getElementById("resultSelect");
+  select.innerHTML = myResults.map(function (r) {
+    return '<option value="' + r.id + '">' + escapeHtml(r.examTitle) + " · " + formatDate(r.date) + "</option>";
+  }).join("");
+  select.addEventListener("change", function () {
+    const result = myResults.find(function (r) { return r.id === Number(select.value); });
+    history.replaceState(null, "", "result.html?id=" + result.id);
+    showResult(user, result, settings).catch(handlePageError);
+  });
 
-  if (result === null) {
-    result = myResults[myResults.length - 1];
-  }
+  document.getElementById("reviewFilter").addEventListener("click", function (event) {
+    const chip = event.target.closest("[data-filter]");
+    if (!chip) return;
+    reviewFilter = chip.getAttribute("data-filter");
+    document.querySelectorAll("#reviewFilter .chip").forEach(function (c) { c.classList.toggle("active", c === chip); });
+    renderReview();
+  });
 
-  select.value = String(myResults.indexOf(result));
-  let exam = null;
-  for (let i = 0; i < exams.length; i++) {
-    if (exams[i].id === result.exam) {
-      exam = exams[i];
-    }
-  }
+  const result = myResults.find(function (r) { return r.id === wanted; }) || myResults[0];
+  select.value = String(result.id);
+  await showResult(user, result, settings);
+})().catch(handlePageError);
 
-  document.getElementById("examCode").textContent = result.exam;
-  document.getElementById("examLine").textContent =
-    result.examTitle + ", attempted on " + formatDate(result.date);
-  document.getElementById("studentLine").textContent = user.name + " (" + user.roll + ")";
+async function showResult(user, result, settings) {
+  currentResult = result;
+  const pending = result.status === "pending";
+  const pass = result.percentage >= settings.passMark;
+
+  document.getElementById("examCode").textContent = result.examId;
+  document.getElementById("examLine").textContent = result.examTitle + ", submitted " + formatDateTime(result.submittedAt);
+  document.getElementById("studentLine").textContent = user.name + " (" + user.id + ")";
+  document.getElementById("heroText").textContent = pending
+    ? "Your MCQs are already checked. " + plural(result.pendingCount, "written answer") + " still need to be marked by your examiner, so this score is provisional."
+    : pass
+      ? "Well done! You cleared the " + settings.passMark + "% pass mark."
+      : "You needed " + settings.passMark + "% to pass. Review the answers below to see where marks were lost.";
   document.getElementById("percentText").textContent = result.percentage + "%";
-  document.getElementById("percentText2").textContent = result.percentage + "%";
+  const ring = document.getElementById("ring");
+  ring.style.setProperty("--value", result.percentage);
+  ring.classList.toggle("fail", !pending && !pass);
+  const tag = document.getElementById("statusTag");
+  tag.textContent = pending ? "Pending review" : pass ? "Passed" : "Failed";
+  tag.className = "badge " + (pending ? "badge-review" : pass ? "badge-passed" : "badge-failed");
+
+  document.getElementById("remarksCard").hidden = !result.remarks;
+  if (result.remarks) {
+    document.getElementById("remarksText").textContent = result.remarks;
+    document.getElementById("remarksBy").textContent = (result.remarksBy || "Examiner") + (result.remarksAt ? " · " + formatDateTime(result.remarksAt) : "");
+  }
+
   document.getElementById("scoreText").textContent = result.score;
   document.getElementById("totalText").textContent = "out of " + result.total;
   document.getElementById("correctText").textContent = result.correct;
   document.getElementById("wrongText").textContent = result.wrong;
   document.getElementById("skippedText").textContent = result.unattempted;
 
-  const tag = document.getElementById("statusTag");
-  if (result.percentage >= 40) {
-    tag.textContent = "Passed";
-    tag.className = "tag passed";
-  } else {
-    tag.textContent = "Failed";
-    tag.className = "tag failed";
-  }
+  // Class average and rank for the same exam (json-server filter by examId)
+  const classResults = await api.get("/results", { examId: result.examId, _sort: "percentage", _order: "desc" });
+  document.getElementById("classAvg").textContent = averagePercentage(classResults) + "%";
+  const rank = classResults.findIndex(function (r) { return r.id === result.id; }) + 1;
+  document.getElementById("rankText").textContent = "Your rank " + rank + " of " + classResults.length;
 
-  renderResultChart(result);
-  buildReview(result, exam);
+  renderChart(result);
+  renderDetails(result);
+  renderReview();
 }
 
-function buildReview(result, exam) {
-  const summary = document.getElementById("reviewSummary");
+function renderChart(result) {
+  const counts = { correct: 0, wrong: 0, skipped: 0, pending: 0 };
+  if (result.answers && result.answers.length) {
+    result.answers.forEach(function (a) { counts[answerKind(a)]++; });
+  } else {
+    counts.correct = result.correct; counts.wrong = result.wrong; counts.skipped = result.unattempted;
+  }
+  const rows = [["Correct", counts.correct, "correct"], ["Wrong", counts.wrong, "wrong"], ["Skipped", counts.skipped, "skipped"]];
+  if (counts.pending) rows.push(["Pending", counts.pending, "brand"]);
+  const total = Math.max(1, counts.correct + counts.wrong + counts.skipped + counts.pending);
+  document.getElementById("resultChart").innerHTML = rows.map(function (row) {
+    return '<div class="chart-row"><span>' + row[0] + '</span><div class="chart-track"><div class="chart-fill ' + row[2] +
+      '" style="width:' + (row[1] / total * 100) + '%"></div></div><strong>' + row[1] + "</strong></div>";
+  }).join("");
+}
 
-  if (exam === null || exam.questions.length === 0 || result.answers === undefined) {
-    summary.textContent = result.score + " / " + result.total;
-    document.getElementById("reviewList").innerHTML =
-      '<div class="empty-result">Question-wise answer key is not available for this exam.</div>';
-    document.getElementById("moreLink").style.display = "none";
+function renderDetails(result) {
+  const items = [["Exam code", escapeHtml(result.examId)], ["Submitted", formatDateTime(result.submittedAt)]];
+  if (result.startedAt) {
+    const minutes = Math.max(1, Math.round((new Date(result.submittedAt) - new Date(result.startedAt)) / 60000));
+    items.push(["Time taken", plural(minutes, "minute")]);
+  }
+  items.push(["Marking", "+" + (result.correctMarks || 2) + " / -" + (result.negativeMarks || 0.5)]);
+  if (result.textScore !== undefined) items.push(["MCQ / written marks", result.mcqScore + " / " + result.textScore]);
+  items.push(["Tab-switch warnings", String(result.violations || 0)]);
+  items.push(["Submitted by", result.autoSubmitted ? "System (auto)" : "You"]);
+  if (result.gradedBy) items.push(["Marked by", escapeHtml(result.gradedBy)]);
+  document.getElementById("attemptDetails").innerHTML = items.map(function (item) {
+    return "<div><span>" + item[0] + "</span><strong>" + item[1] + "</strong></div>";
+  }).join("");
+}
+
+function renderReview() {
+  const result = currentResult;
+  const list = document.getElementById("reviewList");
+  const answers = result.answers || [];
+  if (!answers.length) {
+    document.getElementById("reviewSummary").textContent = result.score + " / " + result.total + " marks";
+    list.innerHTML = '<div class="empty"><i class="bi bi-file-earmark-lock" aria-hidden="true"></i>The question-wise answer key is not available for this older exam.</div>';
     return;
   }
+  document.getElementById("reviewSummary").textContent = plural(answers.length, "question") + " · " + result.score + " / " + result.total + " marks";
 
-  summary.textContent = exam.questions.length + " questions, " + result.score + " / " + result.total;
-  rowsHtml = [];
-
-  for (let i = 0; i < exam.questions.length; i++) {
-    const q = exam.questions[i];
-    let chosen = null;
-
-    for (let j = 0; j < result.answers.length; j++) {
-      if (result.answers[j].id === q.id) {
-        chosen = result.answers[j].chosen;
-      }
-    }
-
-    let rowClass = "";
-    let detail = "";
-    let marks = "";
-    let sign = "";
-
-    if (chosen === null) {
-      rowClass = "skipped";
-      detail = "Not attempted. Correct answer: " + q.correctAnswer;
-      marks = "0";
-      sign = "-";
-    } else if (chosen === q.correctAnswer) {
-      rowClass = "correct";
-      detail = "Your answer: " + chosen;
-      marks = "+" + exam.correctMarks;
-      sign = "R";
-    } else {
-      rowClass = "wrong";
-      detail = "Your answer: " + chosen + ". Correct answer: " + q.correctAnswer;
-      marks = "-" + exam.negativeMarks;
-      sign = "W";
-    }
-
-    rowsHtml.push(
-      '<article class="review-row ' + rowClass + '"><div class="review-num">' + (i + 1) + "</div>" +
-      "<div><strong>" + escapeHtml(q.question) + "</strong><small>" + escapeHtml(detail) + "</small></div>" +
-      "<span>" + marks + "</span><b>" + sign + "</b></article>"
-    );
-  }
-
-  showRows();
-}
-
-function showRows() {
-  let count = rowsHtml.length;
-  if (!showAll && count > 5) {
-    count = 5;
-  }
-
-  let html = "";
-  for (let i = 0; i < count; i++) {
-    html += rowsHtml[i];
-  }
-  document.getElementById("reviewList").innerHTML = html;
-
-  const link = document.getElementById("moreLink");
-  if (rowsHtml.length <= 5) {
-    link.style.display = "none";
-  } else if (showAll) {
-    link.textContent = "Show less";
-  } else {
-    link.textContent = "Show all " + rowsHtml.length + " questions";
-  }
-}
-
-function renderResultChart(result) {
-  const values = [Number(result.correct)||0, Number(result.wrong)||0, Number(result.unattempted)||0];
-  const total = Math.max(1, values.reduce((a,b)=>a+b,0));
-  const labels = ["Correct", "Incorrect", "Unanswered"];
-  const root = document.getElementById("resultChart");
-  if (!root) return;
-  root.replaceChildren();
-  values.forEach((value, index) => {
-    const row = document.createElement("div"); row.className = "chart-row";
-    const label = document.createElement("span"); label.textContent = labels[index];
-    const track = document.createElement("div"); track.className = "chart-track";
-    const bar = document.createElement("div"); bar.className = "chart-fill chart-" + index;
-    bar.style.width = (100 * value / total) + "%";
-    track.appendChild(bar);
-    const count = document.createElement("strong"); count.textContent = value;
-    row.append(label, track, count); root.appendChild(row);
+  const rows = answers.map(function (a, i) {
+    return { a: a, i: i, kind: answerKind(a) };
+  }).filter(function (row) {
+    if (reviewFilter === "written") return row.a.type === "text";
+    return reviewFilter === "all" || row.kind === reviewFilter;
   });
+
+  if (!rows.length) {
+    list.innerHTML = '<div class="empty">No questions in this group.</div>';
+    return;
+  }
+  // Model answers are shown only after the paper is fully marked
+  list.innerHTML = rows.map(function (row) {
+    return answerReviewHtml(row.a, row.i, result, result.status !== "pending");
+  }).join("");
 }
