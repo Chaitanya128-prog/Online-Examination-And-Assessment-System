@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invigilator | ExamDesk</title>
+  <link rel="icon" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("examdesk.theme") || "light");</script>
+</head>
+<body>
+  <header id="appHeader"></header>
+
+  <main class="container page">
+
+    <!-- ================= LIVE MONITOR ================= -->
+    <section class="tab-panel" data-tab="monitor" hidden>
+      <div class="page-head">
+        <div><span class="eyebrow" id="welcomeDate"></span><h1>Live monitor</h1><p id="monitorIntro">Watch every student writing your assigned exam.</p></div>
+      </div>
+      <div class="monitor-bar">
+        <label class="sr-only" for="monitorExam">Exam</label>
+        <select id="monitorExam" style="width:auto;min-width:240px"></select>
+        <span class="live-dot" id="liveDot">Live &middot; refreshes every 5 s</span>
+        <span class="spacer" style="flex:1"></span>
+        <button type="button" class="btn btn-outline btn-sm" id="pauseBtn"><i class="bi bi-pause-fill" aria-hidden="true"></i> Pause</button>
+        <button type="button" class="btn btn-outline btn-sm" id="refreshBtn"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Refresh</button>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card"><span class="stat-icon brand"><i class="bi bi-pencil" aria-hidden="true"></i></span><div><span>Writing now</span><strong id="mWriting">-</strong><small id="mOffline"></small></div></div>
+        <div class="stat-card"><span class="stat-icon green"><i class="bi bi-check2-circle" aria-hidden="true"></i></span><div><span>Submitted</span><strong id="mSubmitted">-</strong><small id="mAuto"></small></div></div>
+        <div class="stat-card"><span class="stat-icon blue"><i class="bi bi-hourglass" aria-hidden="true"></i></span><div><span>Not started</span><strong id="mNotStarted">-</strong><small>Active students</small></div></div>
+        <div class="stat-card"><span class="stat-icon red"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></span><div><span>Tab-switch alerts</span><strong id="mAlerts">-</strong><small id="mLimit"></small></div></div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="monitor-grid" id="monitorGrid"><div class="skeleton"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><span class="eyebrow">Live feed</span><h2>Latest alerts</h2></div><a class="card-link" href="#violations">All <i class="bi bi-arrow-right" aria-hidden="true"></i></a></div>
+          <div id="alertFeed"><div class="skeleton"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VIOLATIONS ================= -->
+    <section class="tab-panel" data-tab="violations" hidden>
+      <div class="page-head">
+        <div><span class="eyebrow">Proctoring log</span><h1>Violations</h1><p>Every tab switch, window change, full-screen exit and copy/paste attempt in your exams.</p></div>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <select id="vExam" aria-label="Filter by exam"><option value="">All my exams</option></select>
+          <select id="vType" aria-label="Filter by type">
+            <option value="">All types</option><option value="tab-switch">Tab switch</option><option value="window-blur">Window change</option>
+            <option value="fullscreen-exit">Full-screen exit</option><option value="copy">Copy</option><option value="paste">Paste</option><option value="contextmenu">Right-click</option>
+          </select>
+          <div class="input-icon search"><i class="bi bi-search" aria-hidden="true"></i><input type="search" id="vSearch" inputmode="numeric" placeholder="Roll no." aria-label="Filter by roll number"></div>
+        </div>
+        <div class="table-wrap">
+          <table class="table table-stack">
+            <thead><tr><th>Student</th><th>Exam</th><th>What happened</th><th class="num">Warning</th><th>When</th><th class="num">Actions</th></tr></thead>
+            <tbody id="violationBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="violationPager"></div>
+      </div>
+    </section>
+
+    <!-- ================= INCIDENTS ================= -->
+    <section class="tab-panel" data-tab="incidents" hidden>
+      <div class="page-head">
+        <div><span class="eyebrow">Reports</span><h1>Incident reports</h1><p>Write down anything unusual during an exam. The admin can see these numbers.</p></div>
+        <button type="button" class="btn btn-primary" id="newIncidentBtn"><i class="bi bi-journal-plus" aria-hidden="true"></i> New report</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table class="table table-stack">
+            <thead><tr><th>Exam</th><th>Student</th><th>Severity</th><th>Note</th><th>Reported</th><th class="num">Actions</th></tr></thead>
+            <tbody id="incidentBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="modal" id="incidentDialog">
+    <form id="incidentForm" novalidate>
+      <div class="modal-head"><h2 id="incidentDialogTitle">New incident report</h2><button type="button" class="icon-btn sm" data-close aria-label="Close"><i class="bi bi-x-lg"></i></button></div>
+      <div class="modal-body">
+        <div class="field-row">
+          <div class="field"><label for="iExam">Exam</label><select id="iExam"></select></div>
+          <div class="field"><label for="iStudent">Student roll no. <span class="muted">(optional)</span></label><input id="iStudent" type="text" inputmode="numeric" maxlength="10"></div>
+        </div>
+        <div class="field"><label for="iSeverity">Severity</label>
+          <select id="iSeverity"><option value="low">Low - noted only</option><option value="medium">Medium - warned the student</option><option value="high">High - possible cheating</option></select></div>
+        <div class="field"><label for="iNote">What happened</label><textarea id="iNote" rows="4" maxlength="600" required></textarea></div>
+        <p class="form-alert" id="incidentAlert"></p>
+      </div>
+      <div class="modal-foot"><button type="button" class="btn btn-outline" data-close>Cancel</button><button type="submit" class="btn btn-primary" id="incidentSaveBtn">Save report</button></div>
+    </form>
+  </dialog>
+
+  <footer id="appFooter"></footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/invigilator.js"></script>
+</body>
+</html>
