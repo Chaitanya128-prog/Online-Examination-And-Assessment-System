@@ -1,59 +1,90 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register | Online Examination System</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.2/font/bootstrap-icons.min.css"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="ui-refinements.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create account | ExamDesk</title>
+  <link rel="icon" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("examdesk.theme") || "light");</script>
 </head>
-<body class="auth-page">
+<body>
+  <button type="button" class="icon-btn auth-theme" id="themeToggle" aria-label="Toggle dark mode"><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
   <main class="auth-shell">
-    <section class="auth-visual">
-      <div class="visual-content">
-        <img src="logo.png" alt="Exam Desk">
-        <h1>Online Exam and Assesment Portal</h1>
+    <section class="auth-visual" aria-hidden="true">
+      <a href="index.html" class="brand"><span class="brand-mark"><i class="bi bi-layers-half"></i></span><span>examdesk<span class="brand-dot">.</span></span></a>
+      <div>
+        <h1>Create your student account</h1>
+        <p>Register once with your university roll number.</p>
       </div>
+      <img class="auth-logo" src="logo.png" alt="">
     </section>
 
-    <section class="auth-card-wrap">
+    <section class="auth-main">
       <div class="auth-card">
-        <div class="mobile-brand"><img src="logo.png" alt="Online Examination System"></div>
-        <div class="card-heading">
-          <h2>Student Registration</h2>
-        </div>
+        <a href="index.html" class="brand"><span class="brand-mark"><i class="bi bi-layers-half" aria-hidden="true"></i></span><span>examdesk<span class="brand-dot">.</span></span></a>
+        <h2>Create account</h2>
+        <p class="lead">Students only. Examiner accounts are added by the exam cell.</p>
 
-        <form id="registerForm">
-          <label for="fullName">Full Name</label>
-          <input id="fullName" type="text" maxlength="40" placeholder="Enter your full name" required>
+        <div class="form-alert show error" id="closedAlert" hidden>Registration is currently closed. Please contact the exam cell.</div>
 
-          <label for="roll">Roll Number</label>
-          <input id="roll" type="text" inputmode="numeric" maxlength="10" placeholder="Enter your roll number" required>
-
-          <label for="email">Email</label>
-          <input id="email" type="email" placeholder="name@example.com" required>
-
-          <label for="password">Password</label>
-          <input id="password" type="password" placeholder="Minimum 6 characters" required>
-          <p class="strength" id="strengthText"></p>
-
-          <label for="confirmPassword">Confirm Password</label>
-          <input id="confirmPassword" type="password" placeholder="Type password again" required>
-
-          <p class="form-error" id="error"></p>
-          <p class="form-success" id="success"></p>
-
-          <div class="form-row">
-            <label class="check"><input type="checkbox" id="showPassword"> Show password</label>
+        <form class="form" id="registerForm" novalidate>
+          <div class="field">
+            <label for="fullName">Full name</label>
+            <input id="fullName" type="text" autocomplete="name" maxlength="60" placeholder="e.g. Riya Verma" required>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="roll">Roll number</label>
+              <input id="roll" type="text" inputmode="numeric" maxlength="10" placeholder="10 digits" required>
+            </div>
+            <div class="field">
+              <label for="department">Programme</label>
+              <select id="department">
+                <option>B.Tech CSE</option>
+                <option>B.Tech ECE</option>
+                <option>B.Tech IT</option>
+                <option>BCA</option>
+                <option>MCA</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" autocomplete="email" placeholder="you@university.edu" required>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="input-icon">
+              <i class="bi bi-lock" aria-hidden="true"></i>
+              <input id="password" type="password" autocomplete="new-password" placeholder="At least 6 characters, letters and numbers" required>
+              <button type="button" class="input-action" data-toggle-password="password" aria-label="Show password"><i class="bi bi-eye" aria-hidden="true"></i></button>
+            </div>
+            <div class="strength" id="strength" aria-live="polite"></div>
+          </div>
+          <div class="field">
+            <label for="confirmPassword">Confirm password</label>
+            <div class="input-icon">
+              <i class="bi bi-lock" aria-hidden="true"></i>
+              <input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Type it again" required>
+            </div>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-full">Register</button>
+          <p class="form-alert" id="registerAlert" role="alert"></p>
+
+          <button type="submit" class="btn btn-primary btn-block" id="registerBtn">Create account</button>
         </form>
 
-        <p class="auth-switch">Already registered? <a href="login.html">Login</a></p>
+        <p class="auth-switch">Already registered? <a class="link" href="login.html">Sign in</a></p>
       </div>
     </section>
   </main>
 
+  <script src="js/api.js"></script>
   <script src="js/common.js"></script>
   <script src="js/register.js"></script>
 </body>

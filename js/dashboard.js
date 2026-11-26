@@ -1,152 +1,133 @@
 "use strict";
 
-const user = checkLogin("student");
+/* =========================================================
+   Student dashboard - live/upcoming exams, recent results, announcements, progress
+   Owner: Devang Kumar (Student module)
+   json-server: /exams, /results, /attempts, /announcements
+   ========================================================= */
 
-if (user !== null) {
-  document.getElementById("userName").textContent = user.name;
-  document.getElementById("userAvatar").textContent = getInitials(user.name);
+(async function () {
+  const user = await requireRole("student");
+  renderAppHeader(user, "dashboard");
+  renderFooter();
+
   document.getElementById("welcomeDate").textContent = todayText();
   document.getElementById("welcomeName").textContent = "Hello, " + user.name.split(" ")[0];
 
-  document.getElementById("logoutBtn").addEventListener("click", function (event) {
-    event.preventDefault();
-    logout();
-  });
+  const [settings, exams, results, attempts, announcements] = await Promise.all([
+    getSettings(),
+    api.get("/exams", { status_ne: "draft", _embed: "questions", _sort: "date", _order: "asc" }),
+    api.get("/results", { userId: user.id, _sort: "submittedAt", _order: "desc" }),
+    api.get("/attempts", { userId: user.id }),
+    fetchAnnouncements(user, 5)
+  ]);
 
-  loadData()
-    .then(function (data) {
-      showDashboard(data);
-    })
-    .catch(function (error) {
-      console.log(error);
-      document.getElementById("liveExamBox").innerHTML =
-        '<div class="empty-live">Could not load data.json. Please open the project with Live Server.</div>';
-    });
-}
+  const doneIds = results.map(function (r) { return r.examId; });
+  const attemptIds = attempts.map(function (a) { return a.examId; });
+  const live = exams.filter(function (e) { return e.status === "live" && doneIds.indexOf(e.id) === -1; });
+  const upcoming = exams.filter(function (e) { return e.status === "upcoming"; });
 
-function startExam(examId) {
-  localStorage.setItem("currentExamId", examId);
-  window.location.href = "exam.html";
-}
-
-function openResult(examId) {
-  localStorage.setItem("resultExamId", examId);
-  window.location.href = "result.html";
-}
-
-function showDashboard(data) {
-  const exams = getAllExams(data);
-  const allResults = getAllResults(data);
-
-  const myResults = allResults.filter(function (r) {
-    return r.student === user.roll;
-  });
-
-  const attemptedIds = myResults.map(function (r) {
-    return r.exam;
-  });
-
-  const liveExams = exams.filter(function (e) {
-    return e.status === "live" && attemptedIds.indexOf(e.id) === -1;
-  });
-
-  const upcomingExams = exams.filter(function (e) {
-    return e.status === "upcoming";
-  });
-
-  document.getElementById("statLive").textContent = liveExams.length;
-  document.getElementById("statUpcoming").textContent = upcomingExams.length;
-  document.getElementById("statCompleted").textContent = myResults.length;
-  document.getElementById("statAverage").textContent = averagePercentage(myResults) + "%";
-
-  document.getElementById("quickCount").textContent = liveExams.length;
-  if (liveExams.length > 0) {
-    document.getElementById("quickExam").textContent = liveExams[0].id;
-    document.getElementById("welcomeText").textContent =
-      "You have " + liveExams.length + " exam available today. Check the details below before starting.";
-  } else {
-    document.getElementById("quickExam").textContent = "None";
-    document.getElementById("welcomeText").textContent = "You have no live exam right now.";
+  document.getElementById("statLive").textContent = live.length;
+  document.getElementById("statUpcoming").textContent = upcoming.length;
+  document.getElementById("statCompleted").textContent = results.length;
+  document.getElementById("statAverage").textContent = results.length ? averagePercentage(results) + "%" : "-";
+  if (results.length) {
+    const best = Math.max.apply(null, results.map(function (r) { return r.percentage; }));
+    document.getElementById("statBest").textContent = "Best score " + best + "%";
   }
 
-  setupNotifications([...liveExams.map(e => "Live now: " + e.title), ...upcomingExams.map(e => "Upcoming: " + e.title), ...(myResults.length ? ["Your latest exam result is available."] : [])]);
-  showLiveExams(liveExams);
-  showUpcoming(upcomingExams);
-  showRecentResults(myResults);
-}
+  const inProgress = live.filter(function (e) { return attemptIds.indexOf(e.id) !== -1; }).length;
+  const openNow = live.filter(function (e) { return !examNotOpenYet(e); }).length;
+  const later = live.length - openNow;
+  document.getElementById("welcomeText").textContent = openNow
+    ? "You have " + plural(openNow, "exam") + " open right now" + (inProgress ? ", " + inProgress + " already in progress." : ". Read the instructions before you start.")
+    : later ? plural(later, "exam") + " will open later today. Check the time on the card below."
+      : "No exam is open for you right now. Check the schedule below.";
 
-function showLiveExams(liveExams) {
-  const box = document.getElementById("liveExamBox");
+  renderLive(live, attemptIds);
+  renderUpcoming(upcoming);
+  renderRecent(results, settings.passMark);
+  renderAnnouncements(announcements);
+  renderProgress(results, settings.passMark);
+})().catch(handlePageError);
 
-  if (liveExams.length === 0) {
-    box.innerHTML = '<div class="empty-live">No live exam is available right now.</div>';
+function renderLive(live, attemptIds) {
+  const box = document.getElementById("liveExams");
+  if (!live.length) {
+    box.innerHTML = '<div class="empty"><i class="bi bi-cup-hot" aria-hidden="true"></i>No live exam right now. You will see it here as soon as an examiner opens one.</div>';
     return;
   }
-
-  let html = "";
-  for (let i = 0; i < liveExams.length; i++) {
-    const exam = liveExams[i];
-    html +=
-      '<article class="exam-live-card">' +
-      '<div class="exam-logo">' + escapeHtml(exam.id.split("-")[0]) + "</div>" +
-      '<div class="exam-info">' +
-      '<div class="tag live">LIVE</div>' +
-      "<h3>" + escapeHtml(exam.title) + "</h3>" +
-      "<p>Read all the instructions carefully before you start the exam.</p>" +
-      '<div class="meta-row"><span>' + exam.duration + " Minutes</span><span>" +
-      exam.questions.length + " Questions</span><span>+" + exam.correctMarks +
-      " correct, -" + exam.negativeMarks + " wrong</span></div>" +
-      "</div>" +
-      '<button class="btn btn-primary" onclick="startExam(\'' + exam.id + '\')">Start Exam</button>' +
+  box.innerHTML = live.map(function (exam) {
+    const resuming = attemptIds.indexOf(exam.id) !== -1;
+    const ready = exam.questions.length > 0;
+    const notOpen = examNotOpenYet(exam);
+    return '<article class="exam-card highlight">' +
+      '<div class="exam-code">' + escapeHtml(exam.id) + "</div>" +
+      "<div>" + statusBadge("live") + (resuming ? ' <span class="badge badge-review">In progress</span>' : "") +
+      "<h3>" + escapeHtml(exam.title) + "</h3><p>" + escapeHtml(exam.description || "") + "</p>" +
+      '<div class="meta"><span><i class="bi bi-calendar-event" aria-hidden="true"></i> ' + formatExamTime(exam) + "</span>" +
+      '<span><i class="bi bi-clock" aria-hidden="true"></i> ' + exam.duration + " min</span>" +
+      '<span><i class="bi bi-list-ol" aria-hidden="true"></i> ' + plural(exam.questions.length, "question") + "</span>" +
+      '<span><i class="bi bi-plus-slash-minus" aria-hidden="true"></i> +' + exam.correctMarks + " / -" + exam.negativeMarks + "</span></div></div>" +
+      (!ready ? '<button class="btn btn-outline" disabled>No questions yet</button>'
+        : notOpen ? '<button class="btn btn-outline" disabled><i class="bi bi-hourglass-split" aria-hidden="true"></i> Opens at ' + formatTime(exam.startTime) + "</button>"
+        : '<a class="btn btn-primary" href="exam.html?id=' + encodeURIComponent(exam.id) + '">' + (resuming ? "Resume exam" : "Start exam") + ' <i class="bi bi-arrow-right" aria-hidden="true"></i></a>'
+      ) +
       "</article>";
-  }
-  box.innerHTML = html;
+  }).join("");
 }
 
-function showUpcoming(upcomingExams) {
+function renderUpcoming(upcoming) {
   const body = document.getElementById("upcomingBody");
-
-  if (upcomingExams.length === 0) {
-    body.innerHTML = '<tr><td colspan="4">No upcoming exams.</td></tr>';
+  if (!upcoming.length) {
+    body.innerHTML = '<tr class="table-empty"><td colspan="4">Nothing scheduled yet.</td></tr>';
     return;
   }
-
-  let html = "";
-  for (let i = 0; i < upcomingExams.length; i++) {
-    const exam = upcomingExams[i];
-    html +=
-      "<tr><td><strong>" + escapeHtml(exam.title) + "</strong><small>" + escapeHtml(exam.id) + "</small></td>" +
-      "<td>" + formatDate(exam.date) + "</td>" +
-      "<td>" + exam.duration + " min</td>" +
-      '<td><span class="status upcoming">Upcoming</span></td></tr>';
-  }
-  body.innerHTML = html;
+  body.innerHTML = upcoming.map(function (exam) {
+    return '<tr><td class="cell-main"><strong>' + escapeHtml(exam.title) + "</strong><small>" + escapeHtml(exam.id) + "</small></td>" +
+      '<td data-label="Date &amp; time">' + formatDate(exam.date) + (exam.startTime ? "<small>" + formatExamTime(exam, false) + "</small>" : "") + "</td>" +
+      '<td data-label="Duration">' + exam.duration + " min</td>" +
+      '<td data-label="Questions" class="num">' + exam.questions.length + "</td></tr>";
+  }).join("");
 }
 
-function showRecentResults(myResults) {
+function renderRecent(results, passMark) {
   const box = document.getElementById("recentResults");
-
-  if (myResults.length === 0) {
-    box.innerHTML = '<div class="empty-live">You have not attempted any exam yet.</div>';
+  if (!results.length) {
+    box.innerHTML = '<div class="empty"><i class="bi bi-journal" aria-hidden="true"></i>You have not attempted any exam yet.</div>';
     return;
   }
+  box.innerHTML = results.slice(0, 5).map(function (r) {
+    const pass = r.percentage >= passMark;
+    return '<a class="list-item" href="result.html?id=' + r.id + '">' +
+      '<span class="list-icon">' + escapeHtml(r.examId.split("-")[0]) + "</span>" +
+      "<div><strong>" + escapeHtml(r.examTitle) + "</strong><small>" + formatDate(r.date) + " &middot; " + r.score + " / " + r.total + "</small></div>" +
+      (r.status === "pending" ? '<span class="badge badge-review">Pending</span>' : '<span class="score-pill ' + (pass ? "pass" : "fail") + '">' + r.percentage + "%</span>") + "</a>";
+  }).join("");
+}
 
-  const sorted = myResults.slice().sort(function (a, b) {
-    if (a.date < b.date) {
-      return 1;
-    }
-    return -1;
-  });
-
-  let html = "";
-  const count = Math.min(sorted.length, 4);
-  for (let i = 0; i < count; i++) {
-    const r = sorted[i];
-    html +=
-      '<div class="result-item clickable" onclick="openResult(\'' + r.exam + '\')">' +
-      '<div class="subject-icon">' + escapeHtml(r.exam.split("-")[0]) + "</div>" +
-      "<div><strong>" + escapeHtml(r.examTitle) + "</strong><small>" + formatDate(r.date) + "</small></div>" +
-      "<b>" + r.percentage + "%</b></div>";
+function renderAnnouncements(list) {
+  const box = document.getElementById("announcements");
+  if (!list.length) {
+    box.innerHTML = '<div class="empty"><i class="bi bi-megaphone" aria-hidden="true"></i>No announcements.</div>';
+    return;
   }
-  box.innerHTML = html;
+  box.innerHTML = list.map(function (a) {
+    return '<article class="announcement"><div class="announcement-head"><h3>' + escapeHtml(a.title) + "</h3>" +
+      (a.priority === "high" ? '<span class="badge badge-high">Important</span>' : "") + "</div>" +
+      "<p>" + escapeHtml(a.message) + "</p><small>" + timeAgo(a.createdAt) + "</small></article>";
+  }).join("");
+}
+
+function renderProgress(results, passMark) {
+  const box = document.getElementById("progressChart");
+  if (!results.length) {
+    box.innerHTML = '<div class="empty"><i class="bi bi-graph-up" aria-hidden="true"></i>Your scores will appear here.</div>';
+    return;
+  }
+  box.innerHTML = results.slice(0, 6).map(function (r) {
+    return '<div class="chart-row"><span title="' + escapeHtml(r.examTitle) + '">' + escapeHtml(r.examId) + "</span>" +
+      '<div class="chart-track"><div class="chart-fill ' + (r.percentage >= passMark ? "correct" : "wrong") + '" style="width:' + r.percentage + '%"></div></div>' +
+      "<strong>" + r.percentage + "%</strong></div>";
+  }).join("") + '<p class="muted small">Pass mark: ' + passMark + "%</p>";
 }

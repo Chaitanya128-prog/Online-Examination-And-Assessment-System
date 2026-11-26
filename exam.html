@@ -1,58 +1,140 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Exam | Online Examination System</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.2/font/bootstrap-icons.min.css"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="ui-refinements.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exam | ExamDesk</title>
+  <link rel="icon" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("examdesk.theme") || "light");</script>
 </head>
-<body class="exam-page">
-  <header class="exam-topbar">
-    <a class="brand dark" href="#"><img src="logo.png" alt="Online Examination System"></a>
-    <div class="exam-title"><strong id="examTitle">Loading...</strong><small id="examInfo"></small></div>
-    <div class="timer"><span>TIME LEFT</span><strong id="timerText">00:00</strong></div>
+<body class="exam-body">
+  <header class="exam-bar">
+    <div class="exam-bar-inner">
+      <a class="brand" href="dashboard.html" aria-label="Back to dashboard"><span class="brand-mark"><i class="bi bi-layers-half" aria-hidden="true"></i></span></a>
+      <div class="exam-heading">
+        <strong id="examTitle">Loading exam...</strong>
+        <small id="examInfo"></small>
+      </div>
+      <div class="timer" id="timer" role="timer" aria-live="off">
+        <i class="bi bi-stopwatch" aria-hidden="true"></i>
+        <div><small>TIME LEFT</small><strong id="timerText">--:--</strong></div>
+      </div>
+    </div>
+    <div class="exam-progress" aria-hidden="true"><span id="progressBar"></span></div>
   </header>
 
-  <div class="exam-layout">
-    <main class="question-area">
+  <!-- Shown when the exam cannot be opened -->
+  <main class="container page" id="blockedScreen" hidden>
+    <div class="empty" style="max-width:560px;margin:40px auto">
+      <i class="bi bi-slash-circle" aria-hidden="true"></i>
+      <h2 id="blockedTitle">Exam not available</h2>
+      <p id="blockedText" style="margin-top:6px"></p>
+      <a class="btn btn-primary" href="dashboard.html">Back to dashboard</a>
+    </div>
+  </main>
+
+  <!-- Instructions before starting -->
+  <main class="container page" id="introScreen" hidden>
+    <div class="card" style="max-width:760px;margin:0 auto">
+      <span class="eyebrow">Before you begin</span>
+      <h1 id="introTitle" style="margin:6px 0 4px"></h1>
+      <p class="muted" id="introDescription"></p>
+      <div class="detail-grid" style="margin:22px 0">
+        <div><small>Questions</small><strong id="introQuestions">-</strong></div>
+        <div><small>Duration</small><strong id="introDuration">-</strong></div>
+        <div><small>Correct</small><strong id="introCorrect">-</strong></div>
+        <div><small>Wrong</small><strong id="introWrong">-</strong></div>
+      </div>
+      <h3 style="margin-bottom:10px">Instructions</h3>
+      <ul class="instructions-list" id="introList"></ul>
+      <label class="check" style="margin-top:20px"><input type="checkbox" id="agreeBox"> I have read the instructions and I am ready to start.</label>
+      <div class="form-actions" style="margin-top:20px">
+        <a class="btn btn-outline" href="dashboard.html">Not now</a>
+        <button type="button" class="btn btn-primary" id="startBtn" disabled>Start exam <i class="bi bi-play-fill" aria-hidden="true"></i></button>
+      </div>
+    </div>
+  </main>
+
+  <!-- The exam itself -->
+  <main class="exam-layout" id="examScreen" hidden>
+    <section class="card question-card" aria-live="polite">
       <div class="question-top">
-        <span class="question-count">Question <strong id="questionNo">1</strong> of <span id="questionTotal">0</span></span>
-        <span class="marks" id="marksInfo"></span>
+        <span>Question <strong id="questionNo">1</strong> of <span id="questionTotal">0</span></span>
+        <span id="marksInfo"></span>
       </div>
-
-      <article class="question-card">
-        <span class="eyebrow" id="questionLabel">Question 1</span>
-        <h1 id="questionText"></h1>
-
-        <div class="options" id="optionsBox"></div>
-
-        <div class="question-actions">
-          <button class="btn btn-outline" id="prevBtn" type="button">Previous</button>
-          <button class="btn btn-outline" id="clearBtn" type="button">Clear Answer</button>
-          <button class="btn btn-review" id="reviewBtn" type="button">Mark for Review</button>
-          <button class="btn btn-primary" id="nextBtn" type="button">Save &amp; Next</button>
-        </div>
-      </article>
-
-      <div class="exam-note"><strong>Note:</strong> Do not refresh the page during the exam. Marked questions can be revisited before submitting.</div>
-    </main>
-
-    <aside class="palette">
-      <div class="palette-head"><span class="eyebrow">Questions</span><strong id="paletteCount">1 / 0</strong></div>
-      <div class="legend">
-        <span><i class="dot answered"></i> Answered</span>
-        <span><i class="dot not-answered"></i> Not answered</span>
-        <span><i class="dot review"></i> Marked for review</span>
+      <h1 class="question-text" id="questionText"></h1>
+      <div class="options" id="optionsBox" role="radiogroup" aria-labelledby="questionText"></div>
+      <div id="textAnswerBox" hidden>
+        <label class="sr-only" for="textAnswer">Your answer</label>
+        <textarea id="textAnswer" class="answer-box" maxlength="3000" placeholder="Type your answer here. It is saved automatically."></textarea>
+        <div class="answer-meta"><span id="wordCount">0 words</span><span>Marked by your examiner after you submit</span></div>
       </div>
+      <div class="question-actions">
+        <button class="btn btn-outline" id="prevBtn" type="button"><i class="bi bi-chevron-left" aria-hidden="true"></i> Previous</button>
+        <button class="btn btn-ghost" id="clearBtn" type="button"><i class="bi bi-eraser" aria-hidden="true"></i> Clear</button>
+        <span class="spacer"></span>
+        <button class="btn btn-warning" id="reviewBtn" type="button"><i class="bi bi-flag" aria-hidden="true"></i> <span>Mark for review</span></button>
+        <button class="btn btn-primary" id="nextBtn" type="button">Save &amp; next <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+      </div>
+      <p class="kbd-hint">Shortcuts (MCQ): <kbd>A</kbd>-<kbd>D</kbd> choose &middot; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> move &middot; <kbd>M</kbd> mark for review</p>
+    </section>
+
+    <aside class="card palette" aria-label="Question palette">
+      <div class="card-head" style="margin-bottom:0"><h2>Questions</h2><span class="muted small" id="paletteCount"></span></div>
       <div class="palette-grid" id="paletteGrid"></div>
-      <div class="palette-footer">
-        <p id="paletteInfo"></p>
-        <button class="btn btn-danger btn-full" id="submitBtn" type="button">Submit Exam</button>
+      <div class="legend">
+        <span><i class="answered"></i> Answered</span>
+        <span><i class="review"></i> For review</span>
+        <span><i></i> Not answered</span>
+        <span><i class="current"></i> Current</span>
       </div>
+      <div class="palette-stats">
+        <div><strong id="answeredCount">0</strong><small>Answered</small></div>
+        <div><strong id="reviewCount">0</strong><small>Review</small></div>
+        <div><strong id="leftCount">0</strong><small>Left</small></div>
+      </div>
+      <button class="btn btn-danger btn-block" id="submitBtn" type="button"><i class="bi bi-send-check" aria-hidden="true"></i> Submit exam</button>
+      <p class="save-state" id="saveState"><i class="bi bi-cloud-check" aria-hidden="true"></i> All answers saved</p>
+      <p class="proctor-strip" id="proctorStrip"><i class="bi bi-shield-check" aria-hidden="true"></i> <span>Proctoring on &middot; 0 warnings</span></p>
     </aside>
-  </div>
+  </main>
 
-  <div id="toastRegion" class="toast-region" aria-live="polite"></div><script src="js/common.js"></script>
+  <dialog class="modal modal-sm" id="violationDialog">
+    <div class="modal-body confirm-body">
+      <div class="confirm-icon danger"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
+      <h2>Stay on the exam screen</h2>
+      <p id="violationText"></p>
+      <p><strong id="violationCount"></strong></p>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-primary" data-close onclick="enterFullScreen()">Return to exam</button>
+    </div>
+  </dialog>
+
+  <dialog class="modal modal-sm" id="submitDialog">
+    <div class="modal-head"><h2>Submit exam?</h2><button type="button" class="icon-btn sm" data-close aria-label="Close"><i class="bi bi-x-lg"></i></button></div>
+    <div class="modal-body">
+      <div class="summary-list">
+        <div><span>Answered</span><strong id="sumAnswered">0</strong></div>
+        <div><span>Marked for review</span><strong id="sumReview">0</strong></div>
+        <div><span>Not answered</span><strong id="sumLeft">0</strong></div>
+      </div>
+      <p class="form-alert" id="submitAlert"></p>
+      <p class="muted small">You cannot change your answers after submitting.</p>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-outline" data-close>Keep working</button>
+      <button type="button" class="btn btn-danger" id="confirmSubmitBtn">Submit now</button>
+    </div>
+  </dialog>
+
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
   <script src="js/exam.js"></script>
 </body>
 </html>
