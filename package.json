@@ -1,0 +1,19 @@
+{
+  "name": "examdesk",
+  "version": "4.0.0",
+  "private": true,
+  "description": "ExamDesk - online examination and assessment system (HTML, CSS, JS + json-server)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "json-server --watch db.json --port 3000 --static . --middlewares scripts/no-cache.js",
+    "api": "json-server --watch db.json --port 3000 --middlewares scripts/no-cache.js",
+    "reset": "node -e \"require('fs').copyFileSync('db.seed.json','db.json');console.log('db.json restored from db.seed.json')\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "json-server": "0.17.4"
+  }
+}

@@ -1,0 +1,411 @@
+{
+  "settings": {
+    "instituteName": "ExamDesk University",
+    "passMark": 40,
+    "sessionHours": 2,
+    "defaultCorrectMarks": 2,
+    "defaultNegativeMarks": 0.5,
+    "requireAllAnswers": false,
+    "allowRegistration": true,
+    "requireApproval": true,
+    "maxTabSwitches": 3,
+    "maxLoginAttempts": 3,
+    "lockSeconds": 30
+  },
+  "users": [
+    {
+      "id": "2415000466",
+      "name": "Chaitanya Pandey",
+      "email": "chaitanya.pandey@examdesk.edu",
+      "phone": "",
+      "role": "student",
+      "password": "b7ad072a087fa583fa853fa954a73d45d2ebc1030a5b8b58660c9bf68f544d22",
+      "status": "active",
+      "createdAt": "2026-11-25T08:00:00.000Z",
+      "notificationsSeenAt": null,
+      "department": "B.Tech CSE"
+    },
+    {
+      "id": "9001",
+      "name": "Akash Gupta",
+      "email": "akash.gupta@examdesk.edu",
+      "phone": "",
+      "role": "examiner",
+      "password": "f86b68e38a443f6eff91d12367eb1d018afae41398a1c0e3ee15f56585553942",
+      "status": "active",
+      "createdAt": "2026-11-25T08:00:00.000Z",
+      "notificationsSeenAt": null,
+      "department": "Computer Science",
+      "subjects": [
+        "Data Structures",
+        "Networks",
+        "Operating Systems",
+        "Security",
+        "Programming",
+        "Web Technologies",
+        "Databases"
+      ]
+    },
+    {
+      "id": "7001",
+      "name": "Rahul Mehta",
+      "email": "rahul.mehta@examdesk.edu",
+      "phone": "",
+      "role": "invigilator",
+      "password": "82f0e5b98e2900e660823fdde6e6647895fbb97d8b8f3c886f05e35ac0cd439d",
+      "status": "active",
+      "createdAt": "2026-11-25T08:00:00.000Z",
+      "notificationsSeenAt": null,
+      "department": "Exam Cell"
+    },
+    {
+      "id": "1001",
+      "name": "Priya Malhotra",
+      "email": "priya.malhotra@examdesk.edu",
+      "phone": "",
+      "role": "admin",
+      "password": "56319aca816f25377352a505fc10de5743abd274296a49ac7303f6b5cae09127",
+      "status": "active",
+      "createdAt": "2026-11-25T08:00:00.000Z",
+      "notificationsSeenAt": null,
+      "department": "Controller of Examinations"
+    }
+  ],
+  "exams": [
+    {
+      "id": "DSA-301",
+      "title": "Data Structures & Algorithms",
+      "subject": "Data Structures",
+      "description": "Assessment covering the core topics of Data Structures & Algorithms.",
+      "instructions": "MCQs are checked automatically. Written answers are marked by your examiner.",
+      "date": "2026-11-25",
+      "startTime": "09:00",
+      "duration": 20,
+      "status": "live",
+      "approval": "approved",
+      "approvalNote": "",
+      "approvedBy": "1001",
+      "correctMarks": 2,
+      "negativeMarks": 0.5,
+      "createdBy": "9001",
+      "invigilatorId": "7001",
+      "createdAt": "2026-11-25T08:00:00.000Z",
+      "updatedAt": "2026-11-25T08:00:00.000Z"
+    },
+    {
+      "id": "CN-204",
+      "title": "Computer Networks",
+      "subject": "Networks",
+      "description": "Assessment covering the core topics of Computer Networks.",
+      "instructions": "MCQs are checked automatically. Written answers are marked by your examiner.",
+      "date": "2026-11-30",
+      "startTime": "10:00",
+      "duration": 45,
+      "status": "upcoming",
+      "approval": "approved",
+      "approvalNote": "",
+      "approvedBy": "1001",
+      "correctMarks": 2,
+      "negativeMarks": 0.5,
+      "createdBy": "9001",
+      "invigilatorId": "7001",
+      "createdAt": "2026-11-25T08:00:00.000Z",
+      "updatedAt": "2026-11-25T08:00:00.000Z"
+    },
+    {
+      "id": "OS-301",
+      "title": "Operating Systems",
+      "subject": "Operating Systems",
+      "description": "Assessment covering the core topics of Operating Systems.",
+      "instructions": "MCQs are checked automatically. Written answers are marked by your examiner.",
+      "date": "2026-12-04",
+      "startTime": "11:00",
+      "duration": 60,
+      "status": "draft",
+      "approval": "pending",
+      "approvalNote": "",
+      "approvedBy": null,
+      "correctMarks": 2,
+      "negativeMarks": 0.5,
+      "createdBy": "9001",
+      "invigilatorId": null,
+      "createdAt": "2026-11-25T08:00:00.000Z",
+      "updatedAt": "2026-11-25T08:00:00.000Z"
+    },
+    {
+      "id": "CS-305",
+      "title": "Cyber Security",
+      "subject": "Security",
+      "description": "Assessment covering the core topics of Cyber Security.",
+      "instructions": "MCQs are checked automatically. Written answers are marked by your examiner.",
+      "date": "2026-12-09",
+      "startTime": "14:00",
+      "duration": 40,
+      "status": "draft",
+      "approval": "none",
+      "approvalNote": "",
+      "approvedBy": null,
+      "correctMarks": 2,
+      "negativeMarks": 0.5,
+      "createdBy": "9001",
+      "invigilatorId": null,
+      "createdAt": "2026-11-25T08:00:00.000Z",
+      "updatedAt": "2026-11-25T08:00:00.000Z"
+    }
+  ],
+  "questions": [
+    {
+      "id": 1,
+      "examId": "DSA-301",
+      "type": "mcq",
+      "text": "Which data structure follows the LIFO principle?",
+      "options": [
+        "Queue",
+        "Stack",
+        "Tree",
+        "Graph"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 2,
+      "examId": "DSA-301",
+      "type": "mcq",
+      "text": "What is the average time complexity of Merge Sort?",
+      "options": [
+        "O(n)",
+        "O(log n)",
+        "O(n log n)",
+        "O(n²)"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 3,
+      "examId": "DSA-301",
+      "type": "mcq",
+      "text": "Which sorting algorithm uses a pivot?",
+      "options": [
+        "Bubble Sort",
+        "Quick Sort",
+        "Selection Sort",
+        "Insertion Sort"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 4,
+      "examId": "DSA-301",
+      "type": "mcq",
+      "text": "What is the time complexity of binary search?",
+      "options": [
+        "O(n)",
+        "O(log n)",
+        "O(n log n)",
+        "O(1)"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 5,
+      "examId": "DSA-301",
+      "type": "mcq",
+      "text": "Which traversal visits the root between left and right subtrees?",
+      "options": [
+        "Preorder",
+        "Inorder",
+        "Postorder",
+        "Level order"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 6,
+      "examId": "DSA-301",
+      "type": "mcq",
+      "text": "Which data structure is used for BFS of a graph?",
+      "options": [
+        "Stack",
+        "Queue",
+        "Heap",
+        "Array"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 7,
+      "examId": "DSA-301",
+      "type": "mcq",
+      "text": "What is the worst-case time complexity of Quick Sort?",
+      "options": [
+        "O(n log n)",
+        "O(n)",
+        "O(n²)",
+        "O(log n)"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 8,
+      "examId": "DSA-301",
+      "type": "mcq",
+      "text": "A complete binary tree with n nodes has height about:",
+      "options": [
+        "n",
+        "log n",
+        "n/2",
+        "√n"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 9,
+      "examId": "DSA-301",
+      "type": "text",
+      "text": "Explain the difference between a stack and a queue with one real-life example of each.",
+      "marks": 4,
+      "modelAnswer": "Stack is LIFO (last in, first out), e.g. a pile of plates. Queue is FIFO (first in, first out), e.g. a ticket line."
+    },
+    {
+      "id": 10,
+      "examId": "DSA-301",
+      "type": "text",
+      "text": "What is a hash collision and name one way to handle it?",
+      "marks": 4,
+      "modelAnswer": "Two keys map to the same index. Handled by chaining (linked lists) or open addressing (linear probing)."
+    },
+    {
+      "id": 11,
+      "examId": "CN-204",
+      "type": "mcq",
+      "text": "Which OSI layer handles routing?",
+      "options": [
+        "Data link",
+        "Network",
+        "Transport",
+        "Session"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 12,
+      "examId": "CN-204",
+      "type": "mcq",
+      "text": "Which protocol resolves an IP address to a MAC address?",
+      "options": [
+        "DNS",
+        "DHCP",
+        "ARP",
+        "ICMP"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 13,
+      "examId": "CN-204",
+      "type": "mcq",
+      "text": "What is the default port of HTTPS?",
+      "options": [
+        "80",
+        "21",
+        "443",
+        "8080"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 14,
+      "examId": "CN-204",
+      "type": "text",
+      "text": "Compare TCP and UDP in two points.",
+      "marks": 4,
+      "modelAnswer": "TCP is connection-oriented and reliable; UDP is connectionless and faster with no delivery guarantee."
+    },
+    {
+      "id": 15,
+      "examId": "OS-301",
+      "type": "mcq",
+      "text": "Which scheduling algorithm can cause starvation?",
+      "options": [
+        "Round robin",
+        "FCFS",
+        "Priority",
+        "None of these"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "id": 16,
+      "examId": "OS-301",
+      "type": "mcq",
+      "text": "What does a page fault mean?",
+      "options": [
+        "Disk failure",
+        "Page not in main memory",
+        "Invalid pointer",
+        "Stack overflow"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "id": 17,
+      "examId": "OS-301",
+      "type": "text",
+      "text": "List the four necessary conditions for deadlock.",
+      "marks": 4,
+      "modelAnswer": "Mutual exclusion, hold and wait, no preemption, circular wait."
+    },
+    {
+      "id": 18,
+      "examId": "CS-305",
+      "type": "mcq",
+      "text": "Which of these is a symmetric encryption algorithm?",
+      "options": [
+        "RSA",
+        "AES",
+        "ECC",
+        "Diffie-Hellman"
+      ],
+      "correctIndex": 1
+    }
+  ],
+  "results": [],
+  "attempts": [],
+  "violations": [],
+  "incidents": [],
+  "sessions": [],
+  "loginAttempts": [],
+  "announcements": [
+    {
+      "id": 1,
+      "title": "DSA-301 is live",
+      "message": "Data Structures & Algorithms is open today: 8 MCQs and 2 written questions, 20 minutes.",
+      "audience": "students",
+      "priority": "high",
+      "createdBy": "9001",
+      "createdAt": "2026-11-25T07:30:00.000Z",
+      "updatedAt": "2026-11-25T07:30:00.000Z"
+    },
+    {
+      "id": 2,
+      "title": "Exam rules",
+      "message": "Stay on the exam screen. Switching tabs 3 times submits your exam automatically.",
+      "audience": "all",
+      "priority": "normal",
+      "createdBy": "1001",
+      "createdAt": "2026-11-22T10:00:00.000Z",
+      "updatedAt": "2026-11-22T10:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "title": "OS-301 waiting for approval",
+      "message": "Please review the Operating Systems paper before Friday.",
+      "audience": "admins",
+      "priority": "normal",
+      "createdBy": "9001",
+      "createdAt": "2026-11-24T12:00:00.000Z",
+      "updatedAt": "2026-11-24T12:00:00.000Z"
+    }
+  ],
+  "activity": []
+}
